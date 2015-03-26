@@ -3,7 +3,7 @@ __author__ = 'traincm'
 from tree_function  import *
 from classes import *
 import xml.etree.cElementTree as etree
-
+from math import *
 
 ############################
 start_time = time.time()
@@ -41,19 +41,6 @@ print("--- %s seconds ---" % (time.time() - start_time))
 ############################
 
 
-def recursive_traversalxml(node, nodexml):
-    for child in node:
-        if child.name:
-            actual = etree.SubElement(nodexml, 'ActualGenome')
-            actual.set("Specie", str(child.genome.specie))
-
-        else:
-            AncestralGenome = etree.SubElement(nodexml, "AncestralGenome")
-            strtext=child.genome.UniqueId
-            AncestralGenome.set("Id", str(strtext))
-            recursive_traversalxml(child, AncestralGenome)
-
-
 def indent(elem, level=0):
   i = "\n" + level*"  "
   if len(elem):
@@ -70,12 +57,73 @@ def indent(elem, level=0):
       elem.tail = i
 
 
-def buildTree():
-  treeOfLife = etree.Element("LUCA")
-  recursive_traversalxml(node, treeOfLife)
-  indent(treeOfLife)
-  tree = etree.ElementTree(treeOfLife)
-  tree.write("treeOfLife.xml", xml_declaration=True, encoding='utf-8', method="xml")
+def recursive_traversal_hog_xml(node,nodexml,hog):
+    for child in node:
+        if child.name:
+            if child.genome.specie[0] in hog.genes.keys():
+                genes= hog.genes[child.genome.specie[0]]
+                for e in genes:
+                    genexml = etree.SubElement(nodexml, "geneRef")
+                    genexml.set("id", str(e.UniqueId))
+                    no = log10(e.specieId)
+                    genexml.set("geneId", child.genome.specie[0] +(5-trunc(no))*'0' + str(e.specieId))
+
+        else:
+            hogxml = etree.SubElement(nodexml, "hierarchicalOrtholousGroup")
+            recursive_traversal_hog_xml(child,hogxml,hog)
+
+start_time = time.time()
+# Initialisation of <orthoXML>
+treeOfLife = etree.Element("orthoXML")
+treeOfLife.set("originVersion", '1')
+treeOfLife.set("origin", 'orthoXML.org')
+treeOfLife.set("version", '0.3')
+treeOfLife.set("xmlns", 'http://orthoXML.org/2011/')
+
+# Add each <specie> into orthoXML
+for specie in ActualGenome.getinstances():
+    actualgenomexml = etree.SubElement(treeOfLife, "species")
+    actualgenomexml.set("name", specie.specie[0])
+
+    # Add <database> into <specie>
+    databasexml = etree.SubElement(actualgenomexml, "database")
+    databasexml.set("name", 'randomDB')
+    databasexml.set("version", '42')
+
+    # Add <genes> TAG into <database>
+    genesxml = etree.SubElement(databasexml, "genes")
+
+    # Fill <genes> with <gene>
+    for gene in specie.genes:
+        genexml = etree.SubElement(genesxml, "genes")
+        genexml.set("id", str(gene.UniqueId))
+        no = log10(gene.specieId)
+        genexml.set("geneId", specie.specie[0] +(5-trunc(no))*'0' + str(gene.specieId))
+
+# Add <groups> into orthoXML
+groupsxml = etree.SubElement(treeOfLife, "groups")
+
+# Add <group> into <groups>
+
+#for hog in HOG.getinstances():
+for hog in node.genome.HOGS:
+    hogxml = etree.SubElement(groupsxml, "hierarchicalOrtholousGroup")
+    recursive_traversal_hog_xml(node,hogxml,hog)
+    '''# Fill <geneRef> into <group>
+    print(hog.genes)
+    for key, value in hog.genes.items():
+        for gene in value:
+            genexml = etree.SubElement(hogxml, "geneRef")
+            genexml.set("id", str(gene.UniqueId))'''
 
 
-buildTree()
+
+
+
+
+
+indent(treeOfLife)
+tree = etree.ElementTree(treeOfLife)
+tree.write("treeOfLife.xml", xml_declaration=True, encoding='utf-8', method="xml")
+
+print("--- %s seconds ---" % (time.time() - start_time), '** export results into orthoXML file**')

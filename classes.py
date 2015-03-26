@@ -87,11 +87,24 @@ class AncestralGenome(Genome):
 class HOG:
 
     IdCount = 0
+    _instances = set()
 
     def __init__(self):
         self.genes = {}
         self.id=HOG.IdCount
         HOG.IdCount += 1
+        self._instances.add(weakref.ref(self))
+
+    @classmethod
+    def getinstances(cls):
+        dead = set()
+        for ref in cls._instances:
+            obj = ref()
+            if obj is not None:
+                yield obj
+            else:
+                dead.add(ref)
+        cls._instances -= dead
 
     def mergeHOGwith(self,HOG2):
         for key, value in HOG2.genes.items():
