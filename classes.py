@@ -1,6 +1,9 @@
-__author__ = 'traincm'
-import weakref
 
+
+__author__ = 'traincm'
+
+import weakref
+import tree_function
 
 class Genome:
 
@@ -52,7 +55,7 @@ class ActualGenome(Genome):
                 return genome
         return None
 
-    def create_genome_HOG_and_Gene(self,number):
+    def create_genome_HOG_and_Gene(self,number,groupsxml):
         print('creation genome:', self.specie)
         for i in range(1,number+1):
             hog=HOG()
@@ -61,6 +64,7 @@ class ActualGenome(Genome):
             hog.genes[self.specie[0]] = [gene]
             self.HOGS.append(hog)
             self.genes.append(gene)
+            tree_function.create_xml_solo_hog(groupsxml,hog,self.specie[0])
 
 
 class AncestralGenome(Genome):

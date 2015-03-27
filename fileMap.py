@@ -27,7 +27,6 @@ Folder = {'HUMAN': HUMAN, 'MOUSE': MOUSE, 'PANTR': PANTR, 'RATNO': []}
 genomeSize = {'HUMAN': 3, 'MOUSE': 3, 'PANTR': 2, 'RATNO': 2}
 
 
-
 def genome_order(genome1,genome2):
     if genome2.specie[0] not in Folder[genome1.specie[0]]:
             return genome2, genome1, True

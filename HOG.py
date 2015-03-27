@@ -5,9 +5,10 @@ import classes as classes
 import fileMap as file
 import time
 import unionfind as UNION
+import xml.etree.cElementTree as etree
+import tree_function
 
-
-def mergeTwoGenome(newgenome, genome1,genome2):
+def mergeTwoGenome(newgenome, genome1,genome2,groupsxml):
 
     newHOGs = []
     matrix = np.zeros([genome1.getNumberOfHOGs(), genome2.getNumberOfHOGs()], dtype=int)
@@ -45,11 +46,23 @@ def mergeTwoGenome(newgenome, genome1,genome2):
     connectedComponents = connectedComponents.get_components()
     for con in connectedComponents:
         newHOG = classes.HOG()
+        anchogxml = etree.SubElement(groupsxml, "hierarchicalOrtholousGroup")
+        anchogxml.set("hogId", str(newHOG.id))
         for e in con:
             if e >= size[1]:
                 newHOG.mergeHOGwith(genome1.HOGS[e-size[1]])
+                hogxml= tree_function.find_xml_hog(genome1.HOGS[e-size[1]].id)
+                groupsxml.remove(hogxml)
+                anchogxml.append(hogxml)
+
             else:
                 newHOG.mergeHOGwith(genome2.HOGS[e])
+                hogxml=tree_function.find_xml_hog(genome2.HOGS[e].id)
+                groupsxml.remove(hogxml)
+                anchogxml.append(hogxml)
+
+
+
         newHOG.updateGenometoAllGenes(newgenome)
         newHOGs.append(newHOG)
     print("--- %s seconds ---" % (time.time() - start_time),'*** compute HOG ***')
