@@ -5,7 +5,7 @@ __author__ = 'traincm'
 import weakref
 import tree_function
 
-class Genome:
+class Genome(object):
 
     IdCount = 0
 
@@ -49,7 +49,8 @@ class ActualGenome(Genome):
                 dead.add(ref)
         cls._instances -= dead
 
-    def find_genome_by_name(name):
+    @classmethod
+    def find_genome_by_name(cls, name):
         for genome in ActualGenome.getinstances():
             if genome.specie[0] == name:
                 return genome
@@ -64,7 +65,8 @@ class ActualGenome(Genome):
             hog.genes[self.specie[0]] = [gene]
             self.HOGS.append(hog)
             self.genes.append(gene)
-            tree_function.create_xml_solo_hog(groupsxml,hog,self.specie[0])
+            hog.xml = tree_function.create_xml_solo_hog(groupsxml,hog,self.specie[0])
+
 
 
 class AncestralGenome(Genome):
@@ -88,7 +90,7 @@ class AncestralGenome(Genome):
         cls._instances -= dead
 
 
-class HOG:
+class HOG(object):
 
     IdCount = 0
     _instances = set()
@@ -98,6 +100,7 @@ class HOG:
         self.id=HOG.IdCount
         HOG.IdCount += 1
         self._instances.add(weakref.ref(self))
+        self.xml = None
 
     @classmethod
     def getinstances(cls):
@@ -125,7 +128,7 @@ class HOG:
                 gene.hog[GENOME]=self
 
 
-class Gene:
+class Gene(object):
     IdCount = 0
     _instances = set()
 

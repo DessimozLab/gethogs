@@ -12,8 +12,8 @@ start_time = time.time()
 ############################
 
 # Choose the folder for test
-#tree=read_tree('for_clement/tree.nwk', "newick")
-tree = read_tree('PERFECTDATA/tree.nwk', "newick")
+tree=read_tree('for_clement/tree.nwk', "newick")
+#tree = read_tree('PERFECTDATA/tree.nwk', "newick")
 
 # Display the tree
 draw_tree(tree)
@@ -38,7 +38,7 @@ angenome.HOGS=mergeTwoGenome(angenome, children[0],children[1],groupsxml)
             print(v.specie,v.specieId)'''
 node.genome = angenome
 
-#finish_xml_and_export(treeOfLife)
+finish_xml_and_export(treeOfLife)
 
 ############################
 print("--- %s seconds ---" % (time.time() - start_time))

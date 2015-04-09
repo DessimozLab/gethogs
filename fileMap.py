@@ -5,12 +5,13 @@ import numpy as np
 
 
 
-#prefix = 'for_clement/'
-prefix = 'PERFECTDATA/'
+prefix = 'for_clement/'
+#prefix = 'PERFECTDATA/'
 suffix = '.orth.txt'
 genome_pairs_data = []
 
-'''
+
+
 # Mapping Files, only for testing genomes in my files !!
 CANFA = ['PANTR', 'RATNO', 'GORGO']
 HUMAN = ['CANFA', 'MOUSE', 'PANTR', 'RATNO', 'GORGO']
@@ -25,6 +26,7 @@ MOUSE = ['RATNO']
 PANTR = ['MOUSE', 'RATNO']
 Folder = {'HUMAN': HUMAN, 'MOUSE': MOUSE, 'PANTR': PANTR, 'RATNO': []}
 genomeSize = {'HUMAN': 3, 'MOUSE': 3, 'PANTR': 2, 'RATNO': 2}
+'''
 
 
 def genome_order(genome1,genome2):

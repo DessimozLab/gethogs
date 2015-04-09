@@ -4,7 +4,8 @@ from Bio import Phylo
 from classes import *
 from HOG import *
 from fileMap import *
-import xml.etree.cElementTree as etree
+#import xml.etree.cElementTree as etree
+import lxml.etree as etree
 from math import *
 
 
@@ -142,6 +143,9 @@ def create_xml_solo_hog(groupsxml,hog,specie):
     hogxml.set("hogId", str(hog.id))
     gene = hog.genes[specie][0]
     hogxml.set('genehog',str(gene.UniqueId))
+    no = log10(gene.specieId)
+    hogxml.set("geneId", gene.specie[0] +(5-trunc(no))*'0' + str(gene.specieId))
+    return hogxml
 
 
 def finish_xml_and_export(treeOfLife):

@@ -5,7 +5,8 @@ import classes as classes
 import fileMap as file
 import time
 import unionfind as UNION
-import xml.etree.cElementTree as etree
+#import xml.etree.cElementTree as etree
+import lxml.etree as etree
 import tree_function
 
 def mergeTwoGenome(newgenome, genome1,genome2,groupsxml):
@@ -47,21 +48,18 @@ def mergeTwoGenome(newgenome, genome1,genome2,groupsxml):
     for con in connectedComponents:
         newHOG = classes.HOG()
         anchogxml = etree.SubElement(groupsxml, "hierarchicalOrtholousGroup")
+        newHOG.xml=anchogxml
         anchogxml.set("hogId", str(newHOG.id))
         for e in con:
             if e >= size[1]:
                 newHOG.mergeHOGwith(genome1.HOGS[e-size[1]])
-                hogxml= tree_function.find_xml_hog(genome1.HOGS[e-size[1]].id)
-                groupsxml.remove(hogxml)
+                hogxml = genome1.HOGS[e-size[1]].xml
                 anchogxml.append(hogxml)
 
             else:
                 newHOG.mergeHOGwith(genome2.HOGS[e])
-                hogxml=tree_function.find_xml_hog(genome2.HOGS[e].id)
-                groupsxml.remove(hogxml)
+                hogxml = genome2.HOGS[e].xml
                 anchogxml.append(hogxml)
-
-
 
         newHOG.updateGenometoAllGenes(newgenome)
         newHOGs.append(newHOG)
@@ -102,9 +100,9 @@ def align_twospecie_fill_matrix(genomei,genomej,matrix,genome1,genome2):
 
 def find_hog_fill_matrix_cell(inverted,genomei,genomej,genome1,genome2,raw,matrix):
     if inverted:
-        hogOfgene1 = genomei.genes[raw['gene2']-1].hog[genome1] #probleme??
+        hogOfgene1 = genomei.genes[raw['gene2']-1].hog[genome1]
         hogOfgene2 = genomej.genes[raw['gene1']-1].hog[genome2]
     else:
-        hogOfgene1 = genomei.genes[raw['gene1']-1].hog[genome1] #probleme??
+        hogOfgene1 = genomei.genes[raw['gene1']-1].hog[genome1]
         hogOfgene2 = genomej.genes[raw['gene2']-1].hog[genome2]
     matrix[genome1.HOGS.index(hogOfgene1)][genome2.HOGS.index(hogOfgene2)] +=1
