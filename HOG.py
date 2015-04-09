@@ -47,19 +47,34 @@ def mergeTwoGenome(newgenome, genome1,genome2,groupsxml):
     connectedComponents = connectedComponents.get_components()
     for con in connectedComponents:
         newHOG = classes.HOG()
-        anchogxml = etree.SubElement(groupsxml, "hierarchicalOrtholousGroup")
+        anchogxml = etree.SubElement(groupsxml, "orthologGroup")
         newHOG.xml=anchogxml
         anchogxml.set("hogId", str(newHOG.id))
+        taxon = etree.SubElement(anchogxml, "property")
+        taxon.set("name", 'TaxRange')
+        taxon.set("value", str(genome1.specie + genome2.specie))
+        cnt_in_genome1 = sum(map(lambda e: e>=size[1], con))
+        cnt_in_genome2 = len(con) - cnt_in_genome1
+        if cnt_in_genome1>1:
+            paraxml = etree.SubElement(anchogxml, "paralogGroup")
+            parent_groupElement1=paraxml
+        else:
+            parent_groupElement1=anchogxml
+        if cnt_in_genome2>1:
+            paraxml = etree.SubElement(anchogxml, "paralogGroup")
+            parent_groupElement2=paraxml
+        else:
+            parent_groupElement2=anchogxml
         for e in con:
             if e >= size[1]:
                 newHOG.mergeHOGwith(genome1.HOGS[e-size[1]])
                 hogxml = genome1.HOGS[e-size[1]].xml
-                anchogxml.append(hogxml)
+                parent_groupElement1.append(hogxml)
 
             else:
                 newHOG.mergeHOGwith(genome2.HOGS[e])
                 hogxml = genome2.HOGS[e].xml
-                anchogxml.append(hogxml)
+                parent_groupElement2.append(hogxml)
 
         newHOG.updateGenometoAllGenes(newgenome)
         newHOGs.append(newHOG)

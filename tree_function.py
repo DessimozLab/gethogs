@@ -52,7 +52,7 @@ def create_ancestralGenome(child,groupsxml):
 
 
 def create_xml_tree(root_tag,originVersion,origin,version,xmlns):
-    treeOfLife = etree.Element("root_tag")
+    treeOfLife = etree.Element(root_tag)
     treeOfLife.set("originVersion", originVersion)
     treeOfLife.set("origin", origin)
     treeOfLife.set("version", version)
@@ -96,7 +96,7 @@ def recursive_traversal_hog_xml(node,nodexml,hog):
                     genexml = etree.SubElement(nodexml, "geneRef")
                     genexml.set("id", str(e.UniqueId))
                     no = log10(e.specieId)
-                    genexml.set("geneId", child.genome.specie[0] +(5-trunc(no))*'0' + str(e.specieId))
+                    genexml.set("geneId", child.genome.specie[0] +(4-trunc(no))*'0' + str(e.specieId))
 
         else:
             hogxml = etree.SubElement(nodexml, "hierarchicalOrtholousGroup")
@@ -135,16 +135,16 @@ def replacesolohog(solohog):
 
 
 def replace_xml_hog_with_gene():
-    [replacesolohog(b) for b in treeOfLife.iterfind(".//hierarchicalOrtholousGroup[@genehog]")]
+    [replacesolohog(b) for b in treeOfLife.iterfind(".//ortholGroup[@genehog]")]
 
 
 def create_xml_solo_hog(groupsxml,hog,specie):
-    hogxml = etree.SubElement(groupsxml, "hierarchicalOrtholousGroup")
+    hogxml = etree.SubElement(groupsxml, "ortholGroup")
     hogxml.set("hogId", str(hog.id))
     gene = hog.genes[specie][0]
     hogxml.set('genehog',str(gene.UniqueId))
     no = log10(gene.specieId)
-    hogxml.set("geneId", gene.specie[0] +(5-trunc(no))*'0' + str(gene.specieId))
+    hogxml.set("geneId", gene.specie[0] +(4-trunc(no))*'0' + str(gene.specieId))
     return hogxml
 
 
@@ -158,6 +158,6 @@ def finish_xml_and_export(treeOfLife):
 
 
 # Initialisation of <orthoXML>
-treeOfLife = create_xml_tree("orthoXML",'1','orthoXML.org','0.3','http://orthoXML.org/2011/')
+treeOfLife = create_xml_tree("orthoXML",'Sep 2014','OMA','0.3','http://orthoXML.org/2011/')
 # Add <groups> into orthoXML
 groupsxml = etree.SubElement(treeOfLife, "groups")
