@@ -12,8 +12,8 @@ start_time = time.time()
 ############################
 
 # Choose the folder for test
-#tree=read_tree('for_clement/tree.nwk', "newick")
-tree = read_tree('PERFECTDATA/tree.nwk', "newick")
+tree=read_tree('for_clement/tree.nwk', "newick")
+#tree = read_tree('PERFECTDATA/tree.nwk', "newick")
 
 # Display the tree
 draw_tree(tree)

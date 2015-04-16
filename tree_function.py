@@ -63,8 +63,11 @@ def create_xml_tree(root_tag,originVersion,origin,version,xmlns):
 def fill_specie_xml(treeOfLife):
 
     for specie in ActualGenome.getinstances():
-        actualgenomexml = etree.SubElement(treeOfLife, "species")
+
+        actualgenomexml = etree.Element("species")
+        treeOfLife.insert(0, actualgenomexml)
         actualgenomexml.set("name", specie.specie[0])
+        actualgenomexml.set("NCBITaxId", '0')
 
         # Add <database> into <specie>
         databasexml = etree.SubElement(actualgenomexml, "database")
@@ -77,10 +80,8 @@ def fill_specie_xml(treeOfLife):
 
         # Fill <genes> with <gene>
         for gene in specie.genes:
-            genexml = etree.SubElement(genesxml, "genes")
+            genexml = etree.SubElement(genesxml, "gene")
             genexml.set("id", str(gene.UniqueId))
-            no = log10(gene.specieId)
-            genexml.set("geneId", specie.specie[0] +(5-trunc(no))*'0' + str(gene.specieId))
 
 
 
@@ -95,12 +96,9 @@ def recursive_traversal_hog_xml(node,nodexml,hog):
                 for e in genes:
                     genexml = etree.SubElement(nodexml, "geneRef")
                     genexml.set("id", str(e.UniqueId))
-                    no = log10(e.specieId)
-                    genexml.set("geneId", child.genome.specie[0] +(4-trunc(no))*'0' + str(e.specieId))
 
         else:
             hogxml = etree.SubElement(nodexml, "hierarchicalOrtholousGroup")
-            hogxml.set("hogId", str(hog.id))
             recursive_traversal_hog_xml(child,hogxml,hog)
 
 
@@ -128,7 +126,6 @@ def find_xml_hog(id):
 
 def replacesolohog(solohog):
     solohog.tag='geneRef'
-    solohog.attrib.pop('hogId')
     val = solohog.get('genehog')
     solohog.set('id', val)
     solohog.attrib.pop('genehog')
@@ -140,11 +137,10 @@ def replace_xml_hog_with_gene():
 
 def create_xml_solo_hog(groupsxml,hog,specie):
     hogxml = etree.SubElement(groupsxml, "ortholGroup")
-    hogxml.set("hogId", str(hog.id))
     gene = hog.genes[specie][0]
     hogxml.set('genehog',str(gene.UniqueId))
     no = log10(gene.specieId)
-    hogxml.set("geneId", gene.specie[0] +(4-trunc(no))*'0' + str(gene.specieId))
+    hogxml.set("protId", gene.specie[0] +(4-trunc(no))*'0' + str(gene.specieId))
     return hogxml
 
 

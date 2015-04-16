@@ -49,10 +49,14 @@ def mergeTwoGenome(newgenome, genome1,genome2,groupsxml):
         newHOG = classes.HOG()
         anchogxml = etree.SubElement(groupsxml, "orthologGroup")
         newHOG.xml=anchogxml
-        anchogxml.set("hogId", str(newHOG.id))
         taxon = etree.SubElement(anchogxml, "property")
         taxon.set("name", 'TaxRange')
-        taxon.set("value", str(genome1.specie + genome2.specie))
+        strtaxon=''
+        for specie in genome1.specie:
+            strtaxon=strtaxon+str(specie)
+        for specie in genome2.specie:
+            strtaxon=strtaxon+str(specie)
+        taxon.set("value", strtaxon)
         cnt_in_genome1 = sum(map(lambda e: e>=size[1], con))
         cnt_in_genome2 = len(con) - cnt_in_genome1
         if cnt_in_genome1>1:
