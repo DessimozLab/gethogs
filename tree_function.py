@@ -82,6 +82,8 @@ def fill_specie_xml(treeOfLife):
         for gene in specie.genes:
             genexml = etree.SubElement(genesxml, "gene")
             genexml.set("id", str(gene.UniqueId))
+            no = log10(gene.specieId)
+            genexml.set("protId", gene.specie[0] +(4-trunc(no))*'0' + str(gene.specieId))
 
 
 
