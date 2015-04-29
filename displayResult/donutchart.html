@@ -1,0 +1,243 @@
+<html>
+<head>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $.ajaxSetup({ cache: false });
+    });
+
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(drawChart);
+    function drawChart() {
+    $.getJSON('MOUSERATNOHUMANPANTR.json', function(data) {
+
+      var data = google.visualization.arrayToDataTable([
+        ['type', 'Percentage'],
+        ['Perfect',     data.ratio_perfect],
+        ['Multi',      data.ratio_multi],
+        ['Semi',  data.ratio_semi],
+        ['None', data.ratio_none]
+        ]);
+
+
+      var options = {
+        title: 'Percentage of matches',
+        pieHole: 0.2,
+      };
+
+      var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
+      function selectHandler() {
+        var selectedItem = chart.getSelection()[0];
+        if (selectedItem) {
+          var topping = data.getValue(selectedItem.row, 0);
+          change_data(topping);
+
+          
+        }
+      }
+      google.visualization.events.addListener(chart, 'select', selectHandler);
+      chart.draw(data, options);
+            });
+    }
+  </script>
+
+  <script type="text/javascript">
+    google.load("visualization", "1", {packages:["table"]});
+    function change_data(topping){
+      var filename;
+
+      $.getJSON('MOUSERATNOHUMANPANTR.json', function(data) {
+
+        var separater ='|**|';
+        var newdata = new google.visualization.DataTable();
+        newdata.addRows(data.tinder[topping].length);
+        newdata.addColumn('string', 'Type');
+        newdata.addColumn('string', 'bottom');
+        newdata.addColumn('string', 'cutting');
+        $.each(data.tinder[topping], function(i,v) {
+
+        var genesb=separater;
+        for (var e in v.family['bottom']) {
+            for (var g in v.family['bottom'][e]){
+          genesb=genesb+v.family['bottom'][e][g]+'\n'
+          }
+          genesb=genesb+ separater;
+          }
+      var genesc=separater;
+        for (var e in v.family['cutting']) {
+          for (var g in v.family['cutting'][e]){
+          genesc=genesc+v.family['cutting'][e][g]+'\n'
+          }
+          genesc=genesc+ separater;
+      }
+        newdata.setValue(i, 0, v.result);
+        newdata.setValue(i, 1, genesb);
+        newdata.setValue(i, 2, genesc);
+
+       });
+
+        var table = new google.visualization.Table(document.getElementById('table_div'));
+        table.draw(newdata, {showRowNumber: true});
+
+      });
+
+    }
+  </script>  
+<!--
+  <script type="text/javascript">
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(drawChart);
+    function drawChart() {
+      var data = google.visualization.arrayToDataTable([
+        ["% of perfect", "Taxon", { role: "style" } ],
+        ["Sarcopterygii", 15, "#b87333"],
+        ["Tetrapoda",26, "silver"],
+        ["Amniota", 15, "#b87333"],
+        ["Mammalia",26, "silver"],
+        ["Theria", 51, "gold"],
+        ["Eutheria", 15, "#b87333"],
+        ["Boreoeutheria",26, "silver"],
+        ["Euarchontoglires", 51, "gold"],
+        ["Glires", 15, "#b87333"],
+        ["Rodentia",26, "silver"],
+        ["Sciurognathi", 51, "gold"],
+        ["Mammalia", 51, "gold"],
+        ["Amniota", 60, "color: #e5e4e2"]
+        ]);
+
+      var view = new google.visualization.DataView(data);
+      view.setColumns([0, 1,
+       { calc: "stringify",
+       sourceColumn: 1,
+       type: "string",
+       role: "annotation" },
+       2]);
+
+      var options = {
+        title: "% of Perfect matches depending of taxonomic range",
+        width: 1200,
+        height: 400,
+        bar: {groupWidth: "65%"},
+        legend: { position: "left" },
+      };
+      var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
+      chart.draw(view, options);
+    }
+  </script>
+ -->
+</head>
+<body>
+  <div class="container-fluid">
+      <!--
+    <div class="row">
+      <div class="col-md-12"><div id="columnchart_values" style="width: auto; height: auto;margin-bottom:20px;margin-top:25px; border:2px solid #307C3B;"></div></div>
+    </div>
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+
+        <ol class="breadcrumb">
+
+          <li><a href="/oma/hogs/RATNO03999/Sarcopterygii/">Sarcopterygii</a></li>
+
+          <li><a href="/oma/hogs/RATNO03999/Tetrapoda/">Tetrapoda</a></li>
+
+          <li><a href="/oma/hogs/RATNO03999/Amniota/">Amniota</a></li>
+
+          <li><a href="/oma/hogs/RATNO03999/Mammalia/">Mammalia</a></li>
+
+          <li><a href="/oma/hogs/RATNO03999/Theria/">Theria</a></li>
+
+          <li><a href="/oma/hogs/RATNO03999/Eutheria/">Eutheria</a></li>
+
+          <li><a href="/oma/hogs/RATNO03999/Boreoeutheria/">Boreoeutheria</a></li>
+
+          <li><a href="/oma/hogs/RATNO03999/Euarchontoglires/">Euarchontoglires</a></li>
+
+          <li><a href="/oma/hogs/RATNO03999/Glires/">Glires</a></li>
+
+          <li><a href="/oma/hogs/RATNO03999/Rodentia/">Rodentia</a></li>
+
+          <li><a href="/oma/hogs/RATNO03999/Sciurognathi/">Sciurognathi</a></li>
+
+        </ol>
+
+      </div>
+    </div>
+     -->
+    <div class="row" style="border:2px solid #307C3B;margin:10px;padding:5px;">
+      <div class="col-md-6" ><div id="donutchart" style="width: 100%; height: 400px; "></div></div>
+      <div class="col-md-6 " >
+       <div class="panel-body">
+           <dl class="dl-horizontal test">
+               <dt>number of matches</dt><dd > <p id="total_match"></p></dd>
+               <dt>taxon</dt><dd > <p id="taxon"></p></dd>
+               <dt>number of perfect</dt><dd > <p id="number_perfect"></p></dd>
+               <dt>number of multi</dt><dd > <p id="number_multi"></p></dd>
+               <dt>number of none</dt><dd > <p id="number_none"></p></dd>
+               <dt>number of semi</dt><dd > <p id="number_semi"></p></dd>
+
+
+
+
+</dl>
+
+       </div>
+      </div>
+    </div>
+<script type="text/javascript">
+
+            $.getJSON('MOUSERATNOHUMANPANTR.json', function(data) {
+            var nm = document.getElementById('total_match');
+            nm.innerHTML = data.number_match;
+
+            var nm = document.getElementById('number_perfect');
+            nm.innerHTML = data.number_perfect;
+
+            var nm = document.getElementById('number_multi');
+            nm.innerHTML = data.number_multi;
+
+            var nm = document.getElementById('number_none');
+            nm.innerHTML = data.number_none;
+
+            var nm = document.getElementById('number_semi');
+            nm.innerHTML = data.number_semi;
+
+            var nm = document.getElementById('taxon');
+            nm.innerHTML = data.taxon;
+
+             });
+
+
+        </script>
+
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
+        <div id="table_div" style="border:2px solid #307C3B;margin:10px;padding:5px;"></div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+

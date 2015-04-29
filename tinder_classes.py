@@ -11,6 +11,7 @@ class TaxonomicRange(object):
         self.house = {'cutting': [], 'bottom': []}
         self._instances.add(weakref.ref(self))
         self.statistic = None
+        self.matches = []
 
 
 
@@ -58,14 +59,14 @@ class Gene(object):
         cls._instances -= dead
 
     @classmethod
-    def get_gene(oma_id):
+    def get_gene(cls,oma_id):
         next((g for g in Gene.getinstances() if g.OMA_id == oma_id), None)
 
     def __init__(self, oma_id):
         self.unique_id = Gene.IdCount
         Gene.IdCount += 1
         self.OMA_id = oma_id
-        self.family = {'cutting': [], 'bottom': []}
+        self.family = {'cutting':   None, 'bottom': None}
         self._instances.add(weakref.ref(self))
 
 class Match(object):
@@ -151,18 +152,33 @@ class Statistic(object):
         self.number_match +=1
         if match.result == 'Perfect':
             self.number_perfect +=1
+        elif match.result == 'None':
+            self.number_none +=1
+        elif match.result == 'Semi':
+            self.number_semi +=1
+        elif match.result == 'Multi':
+            self.number_multi +=1
 
     def show_info(self):
         print('% perfect',self.ratio_perfect )
 
     def compute_stat(self):
         self.ratio_perfect = self.number_perfect / self.number_match * 100
+        self.ratio_none = self.number_none / self.number_match * 100
+        self.ratio_semi = self.number_semi / self.number_match * 100
+        self.ratio_multi = self.number_multi / self.number_match * 100
 
     def __init__(self):
         self._instances.add(weakref.ref(self))
         self.number_match = 0
         self.number_perfect = 0
+        self.number_none = 0
+        self.number_semi = 0
+        self.number_multi = 0
         self.ratio_perfect = 0
+        self.ratio_none = 0
+        self.ratio_semi = 0
+        self.ratio_multi= 0
 
 
 
