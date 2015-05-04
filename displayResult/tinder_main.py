@@ -1,9 +1,11 @@
 __author__ = 'traincm'
 
 import time
-from tinder_classes import *
 import re
 import json
+
+from displayResult.tinder_classes import *
+
 
 prefix = 'Result/'
 suffix = '.txt'
@@ -205,7 +207,6 @@ def compute_match_taxon(taxon):
                 taxon.matches.append(match)
 
 
-
 def export_json_file(taxon):
 
     taxon_data = {
@@ -253,14 +254,23 @@ def export_json_file(taxon):
 
 
 start_time = time.time()
-taxon_MRHP = TaxonomicRange('MOUSERATNOHUMANPANTR')
+taxon_MRHP = TaxonomicRange('Homininae_HUMAN_PANTR')
 stat_MRHP = Statistic()
 taxon_MRHP.statistic = stat_MRHP
-parse_file1('Result/big_GHP_GHP.txt', 'bottom',taxon_MRHP)
+
+#parse_file1('Result/OMA_bottom_0_Homininae.txt', 'bottom',taxon_MRHP)
+#parse_file2('Result/OMA_cutting_none_Homininae.txt', 'cutting',taxon_MRHP)
+
+parse_file1('Result/OMA_bottom_0_Homininae_only_HUMAN_PANTR.txt', 'bottom',taxon_MRHP)
+parse_file2('Result/OMA_cutting_none_Homininae_onlyHUMANPANTR.txt', 'cutting',taxon_MRHP)
+
+#parse_file1('Result/big_GHP_GHP.txt', 'bottom',taxon_MRHP)
 #parse_file1('Result/small_MRHP_MRHP.txt', 'bottom',taxon_MRHP)
 #parse_file2('Result/small_MRHP_MRHPbis.txt', 'cutting',taxon_MRHP)
-parse_file2('Result/OMA_0_GHP_GHP.txt', 'cutting',taxon_MRHP)
+#parse_file2('Result/OMA_0_GHP_GHP.txt', 'cutting',taxon_MRHP)
 #parse_file('Result/small_MRHP_MRHPbis.txt', 'cutting',taxon_MRHP)
+
+
 print("--- %s seconds ---" % (time.time() - start_time), '*** Files parsed ***')
 compute_match_taxon(taxon_MRHP)
 stat_MRHP.compute_stat()

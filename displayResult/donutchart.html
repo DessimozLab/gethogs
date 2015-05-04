@@ -1,19 +1,110 @@
 <html>
 <head>
 
-  <!-- Latest compiled and minified CSS -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 
-  <!-- Optional theme -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
 
-  <!-- Latest compiled and minified JavaScript -->
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 
 
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-  <script type="text/javascript">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+    <style type="text/css">
+        .header_table{
+        font: 2em Helvetica Neue;
+        color : #fff;
+        text-align: center !important;
+        background: rgba(0, 0, 0, .5);
+        }
+        .StyleRows {
+        background-color: #fff;
+        color: #6E7D87;
+        font: 1.2em Helvetica Neue;
+        min-height:20px;
+        text-align: center !important;
+        }
+
+        .StyleRows:hover {color: #0e2f44;
+        font-weight: bold;
+        }
+
+    </style>
+
+</head>
+<body>
+<div class="container-fluid">
+
+    <div class="jumbotron" style="height: 400px; ">
+        <div class="row" >
+            <div class="col-md-6" >
+                <div id="donutchart" style="width: 100%; height: 320px; "></div></div>
+            <div class="col-md-6 " >
+                <div class="panel panel-default" style="height: 320px; overflow: scroll;">
+
+                    <div class="list-group">
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Number of matches </h4>
+                            <p class="list-group-item-text"><p id="total_match"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Taxon</h4>
+                            <p class="list-group-item-text"><p id="taxon"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Number of Perfect</h4>
+                            <p class="list-group-item-text"><p id="number_perfect"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Number of multi</h4>
+                            <p class="list-group-item-text"><p id="number_multi"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Number of none</h4>
+                            <p class="list-group-item-text"><p id="number_none"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Number of semi</h4>
+                            <p class="list-group-item-text"><p id="number_semi"></p></p>
+                        </a>
+
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+    <div class="jumbotron" style="height: 530px; overflow: scroll;">
+        <p style="text-align: center">Choose a type of match on the donut chart or the list above to display details.
+            <button type="button" id="bout" class="btn btn-default btn-sm"> Hide
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </button></p>
+        <div class="row">
+            <div class="col-md-12 ">
+
+                <div id="table_div_parent" style="width: 100%;"></div>
+
+                <div id="table_div" style="height:380px "></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
     $(document).ready(function() {
       $.ajaxSetup({ cache: false });
     });
@@ -21,20 +112,21 @@
     google.load("visualization", "1", {packages:["corechart"]});
     google.setOnLoadCallback(drawChart);
     function drawChart() {
-    $.getJSON('MOUSERATNOHUMANPANTR.json', function(data) {
+    $.getJSON('Homininae_HUMAN_PANTR.json', function(data_taxon) {
 
       var data = google.visualization.arrayToDataTable([
         ['type', 'Percentage'],
-        ['Perfect',     data.ratio_perfect],
-        ['Multi',      data.ratio_multi],
-        ['Semi',  data.ratio_semi],
-        ['None', data.ratio_none]
+        ['Perfect',     data_taxon.ratio_perfect],
+        ['Multi',      data_taxon.ratio_multi],
+        ['Semi',  data_taxon.ratio_semi],
+        ['None', data_taxon.ratio_none]
         ]);
 
 
       var options = {
-        title: 'Percentage of matches',
+        title: 'Percentage of matches at ' + data_taxon.taxon,
         pieHole: 0.2,
+
       };
 
       var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
@@ -44,7 +136,7 @@
           var topping = data.getValue(selectedItem.row, 0);
           change_data(topping);
 
-          
+
         }
       }
       google.visualization.events.addListener(chart, 'select', selectHandler);
@@ -53,14 +145,14 @@
     }
   </script>
 
-  <script type="text/javascript">
+<script type="text/javascript">
     google.load("visualization", "1", {packages:["table"]});
     function change_data(topping){
       var filename;
 
-      $.getJSON('MOUSERATNOHUMANPANTR.json', function(data) {
+      $.getJSON('Homininae_HUMAN_PANTR.json', function(data) {
 
-        var separater ='|**|';
+        var separater ='* ';
         var newdata = new google.visualization.DataTable();
         newdata.addRows(data.tinder[topping].length);
         newdata.addColumn('string', 'Type');
@@ -87,147 +179,70 @@
         newdata.setValue(i, 2, genesc);
 
        });
+       var StyleRows = {'headerRow': 'header_table',
+       tableRow: 'StyleRows'} ;
 
         var table = new google.visualization.Table(document.getElementById('table_div'));
-        table.draw(newdata, {showRowNumber: true});
+        table.draw(newdata, {showRowNumber: false,alternatingRowStyle: false, cssClassNames: StyleRows,});
 
       });
 
     }
-  </script>  
-<!--
-  <script type="text/javascript">
-    google.load("visualization", "1", {packages:["corechart"]});
-    google.setOnLoadCallback(drawChart);
-    function drawChart() {
-      var data = google.visualization.arrayToDataTable([
-        ["% of perfect", "Taxon", { role: "style" } ],
-        ["Sarcopterygii", 15, "#b87333"],
-        ["Tetrapoda",26, "silver"],
-        ["Amniota", 15, "#b87333"],
-        ["Mammalia",26, "silver"],
-        ["Theria", 51, "gold"],
-        ["Eutheria", 15, "#b87333"],
-        ["Boreoeutheria",26, "silver"],
-        ["Euarchontoglires", 51, "gold"],
-        ["Glires", 15, "#b87333"],
-        ["Rodentia",26, "silver"],
-        ["Sciurognathi", 51, "gold"],
-        ["Mammalia", 51, "gold"],
-        ["Amniota", 60, "color: #e5e4e2"]
-        ]);
-
-      var view = new google.visualization.DataView(data);
-      view.setColumns([0, 1,
-       { calc: "stringify",
-       sourceColumn: 1,
-       type: "string",
-       role: "annotation" },
-       2]);
-
-      var options = {
-        title: "% of Perfect matches depending of taxonomic range",
-        width: 1200,
-        height: 400,
-        bar: {groupWidth: "65%"},
-        legend: { position: "left" },
-      };
-      var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
-      chart.draw(view, options);
-    }
   </script>
- -->
-</head>
-<body>
-  <div class="container-fluid">
-      <!--
-    <div class="row">
-      <div class="col-md-12"><div id="columnchart_values" style="width: auto; height: auto;margin-bottom:20px;margin-top:25px; border:2px solid #307C3B;"></div></div>
-    </div>
-    <div class="row">
-      <div class="col-md-8 col-md-offset-2">
 
-        <ol class="breadcrumb">
-
-          <li><a href="/oma/hogs/RATNO03999/Sarcopterygii/">Sarcopterygii</a></li>
-
-          <li><a href="/oma/hogs/RATNO03999/Tetrapoda/">Tetrapoda</a></li>
-
-          <li><a href="/oma/hogs/RATNO03999/Amniota/">Amniota</a></li>
-
-          <li><a href="/oma/hogs/RATNO03999/Mammalia/">Mammalia</a></li>
-
-          <li><a href="/oma/hogs/RATNO03999/Theria/">Theria</a></li>
-
-          <li><a href="/oma/hogs/RATNO03999/Eutheria/">Eutheria</a></li>
-
-          <li><a href="/oma/hogs/RATNO03999/Boreoeutheria/">Boreoeutheria</a></li>
-
-          <li><a href="/oma/hogs/RATNO03999/Euarchontoglires/">Euarchontoglires</a></li>
-
-          <li><a href="/oma/hogs/RATNO03999/Glires/">Glires</a></li>
-
-          <li><a href="/oma/hogs/RATNO03999/Rodentia/">Rodentia</a></li>
-
-          <li><a href="/oma/hogs/RATNO03999/Sciurognathi/">Sciurognathi</a></li>
-
-        </ol>
-
-      </div>
-    </div>
-     -->
-    <div class="row" style="border:2px solid #307C3B;margin:10px;padding:5px;">
-      <div class="col-md-6" ><div id="donutchart" style="width: 100%; height: 400px; "></div></div>
-      <div class="col-md-6 " >
-       <div class="panel-body">
-           <dl class="dl-horizontal test">
-               <dt>number of matches</dt><dd > <p id="total_match"></p></dd>
-               <dt>taxon</dt><dd > <p id="taxon"></p></dd>
-               <dt>number of perfect</dt><dd > <p id="number_perfect"></p></dd>
-               <dt>number of multi</dt><dd > <p id="number_multi"></p></dd>
-               <dt>number of none</dt><dd > <p id="number_none"></p></dd>
-               <dt>number of semi</dt><dd > <p id="number_semi"></p></dd>
-
-
-
-
-</dl>
-
-       </div>
-      </div>
-    </div>
 <script type="text/javascript">
 
-            $.getJSON('MOUSERATNOHUMANPANTR.json', function(data) {
+            $.getJSON('Homininae_HUMAN_PANTR.json', function(data) {
             var nm = document.getElementById('total_match');
             nm.innerHTML = data.number_match;
 
             var nm = document.getElementById('number_perfect');
             nm.innerHTML = data.number_perfect;
+            nm.innerHTML = nm.innerHTML + '  <span class="badge">'+data.ratio_perfect.toFixed(2) +'%</span>';
+            nm.onclick=function(){change_data('Perfect')};
 
             var nm = document.getElementById('number_multi');
             nm.innerHTML = data.number_multi;
+            nm.innerHTML = nm.innerHTML + '  <span class="badge">'+data.ratio_multi.toFixed(2) +'%</span>';
+            nm.onclick=function(){change_data('Multi')};
 
             var nm = document.getElementById('number_none');
             nm.innerHTML = data.number_none;
+            nm.innerHTML = nm.innerHTML + '  <span class="badge">'+data.ratio_none.toFixed(2) +'%</span>';
+            nm.onclick=function(){change_data('None')};
 
             var nm = document.getElementById('number_semi');
             nm.innerHTML = data.number_semi;
+            nm.innerHTML = nm.innerHTML + '  <span class="badge">'+data.ratio_semi.toFixed(2) +'%</span>';
+            nm.onclick=function(){change_data('Semi')};
 
             var nm = document.getElementById('taxon');
             nm.innerHTML = data.taxon;
+
+
+
 
              });
 
 
         </script>
 
-    <div class="row">
-      <div class="col-md-10 col-md-offset-1">
-        <div id="table_div" style="border:2px solid #307C3B;margin:10px;padding:5px;"></div>
-      </div>
-    </div>
-  </div>
+<script type="text/javascript">
+
+
+            var v = document.getElementById('bout');
+            v.onclick=function(){
+            var table = document.getElementById('table_div');
+            table.remove();
+            var e = document.getElementById('table_div_parent');
+            var para = document.createElement("p");
+            para.id = 'table_div';
+            para.style.height= 380;
+            e.appendChild(para);
+            };
+
+</script>
+
 </body>
 
 </html>

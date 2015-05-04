@@ -146,13 +146,13 @@ def create_xml_solo_hog(groupsxml,hog,specie):
     return hogxml
 
 
-def finish_xml_and_export(treeOfLife):
+def finish_xml_and_export(treeOfLife,param_name):
     # Add each <specie> into orthoXML
     fill_specie_xml(treeOfLife)
     replace_xml_hog_with_gene()
     indent(treeOfLife)
     tree = etree.ElementTree(treeOfLife)
-    tree.write("treeOfLife.xml", xml_declaration=True, encoding='utf-8', method="xml")
+    tree.write("OMA_HOG_cutting_"+param_name+".xml", xml_declaration=True, encoding='utf-8', method="xml")
 
 
 # Initialisation of <orthoXML>
