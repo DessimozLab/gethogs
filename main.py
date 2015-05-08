@@ -38,7 +38,7 @@ angenome.HOGS=mergeTwoGenome(angenome, children[0],children[1],groupsxml)
             print(v.specie,v.specieId)'''
 node.genome = angenome
 
-finish_xml_and_export(treeOfLife, "cut_none_bot_0")
+finish_xml_and_export(treeOfLife, "none")
 
 ############################
 print("--- %s seconds ---" % (time.time() - start_time))

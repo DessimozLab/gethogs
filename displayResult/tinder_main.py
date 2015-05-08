@@ -207,7 +207,7 @@ def compute_match_taxon(taxon):
                 taxon.matches.append(match)
 
 
-def export_json_file(taxon):
+def export_json_file(taxon, filename):
 
     taxon_data = {
     'tinder':  {'None': [],'Perfect': [],'Semi': [], 'Multi': []}
@@ -247,22 +247,30 @@ def export_json_file(taxon):
     taxon_data['ratio_semi']=taxon.statistic.ratio_semi
     taxon_data['taxon'] = taxon.taxonomic_range
 
-    filename=taxon.taxonomic_range+".json"
-    out_file = open("displayResult/"+filename,"w+")
+
+    out_file = open(filename+".json","w+")
     json.dump(taxon_data,out_file, indent=4)
     out_file.close()
 
 
+##
+param_taxo_range= 'Boreoeutheria'
+param_file_bottom = 'Result/OMA_bottom_none_Boreoeutheria_only_MR.txt'
+param_file_cutting = 'Result/OMA_cutting_0_Boreoeutheria_only_MR.txt'
+file_name_output = 'Boreoeutheria_only_MR'
+##
+
+
 start_time = time.time()
-taxon_MRHP = TaxonomicRange('Homininae_HUMAN_PANTR')
+taxon_MRHP = TaxonomicRange(param_taxo_range)
 stat_MRHP = Statistic()
 taxon_MRHP.statistic = stat_MRHP
 
 #parse_file1('Result/OMA_bottom_0_Homininae.txt', 'bottom',taxon_MRHP)
 #parse_file2('Result/OMA_cutting_none_Homininae.txt', 'cutting',taxon_MRHP)
 
-parse_file1('Result/OMA_bottom_0_Homininae_only_HUMAN_PANTR.txt', 'bottom',taxon_MRHP)
-parse_file2('Result/OMA_cutting_none_Homininae_onlyHUMANPANTR.txt', 'cutting',taxon_MRHP)
+parse_file1(param_file_bottom, 'bottom',taxon_MRHP)
+parse_file2(param_file_cutting , 'cutting',taxon_MRHP)
 
 #parse_file1('Result/big_GHP_GHP.txt', 'bottom',taxon_MRHP)
 #parse_file1('Result/small_MRHP_MRHP.txt', 'bottom',taxon_MRHP)
@@ -275,7 +283,7 @@ print("--- %s seconds ---" % (time.time() - start_time), '*** Files parsed ***')
 compute_match_taxon(taxon_MRHP)
 stat_MRHP.compute_stat()
 stat_MRHP.show_info()
-export_json_file(taxon_MRHP)
+export_json_file(taxon_MRHP, file_name_output)
 
 print("--- %s seconds ---" % (time.time() - start_time), '*** Total ***')
 

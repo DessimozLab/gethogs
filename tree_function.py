@@ -152,7 +152,7 @@ def finish_xml_and_export(treeOfLife,param_name):
     replace_xml_hog_with_gene()
     indent(treeOfLife)
     tree = etree.ElementTree(treeOfLife)
-    tree.write("OMA_HOG_cutting_"+param_name+".xml", xml_declaration=True, encoding='utf-8', method="xml")
+    tree.write("OMA_HOG_bottom_"+param_name+".xml", xml_declaration=True, encoding='utf-8', method="xml")
 
 
 # Initialisation of <orthoXML>

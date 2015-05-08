@@ -1,0 +1,6 @@
+{
+    "taxon": {"Homininae":84,"Murinae":92,"Homininae_HP":87,"Euarchontoglires":83,"Euarchontoglires_HP":88,"Euarchontoglires_MR":92,"Euarchontoglires_GHP":85,"Boreoeutheria_HP":89,"Boreoeutheria_MR":93,"Boreoeutheria_GHP":87,"Boreoeutheria":87},
+    "perfect_chart": {"Boreoeutheria":[83,89,87,93],"Euarchontoglires":[83,88,85,92],"Homininae":[84,87,0,0],"Murinae":[92,0,0,0]},
+    "order" : ["ALL","HP","GHP","MR"]
+
+}
