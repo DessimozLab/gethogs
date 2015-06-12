@@ -111,7 +111,7 @@ def parse_file1(path,method,taxon):
                         m = re.search(':', array[3])
                         end_match= m.end()
                         gene_OMA_id = array[3][end_match:-1]
-                        gene_line = Gene(gene_OMA_id )
+                        gene_line = Gene(gene_OMA_id)
                         gene_line.family[method] = current_family
                         current_family.children[array[1]].append(gene_line)
                         for gene in array[4:-1]:
@@ -254,10 +254,10 @@ def export_json_file(taxon, filename):
 
 
 ##
-param_taxo_range= 'Boreoeutheria'
-param_file_bottom = 'Result/OMA_bottom_none_Boreoeutheria_only_MR.txt'
-param_file_cutting = 'Result/OMA_cutting_0_Boreoeutheria_only_MR.txt'
-file_name_output = 'Boreoeutheria_only_MR'
+param_taxo_range= 'Homininae'
+param_file_bottom = 'pipelineResult/OMA_bottom_none_Euarchontoglires_GHP.txt'
+param_file_cutting = 'pipelineResult/OMA_cutting_0_Euarchontoglires_GHP.txt'
+file_name_output = 'Euarchontoglires_GHP'
 ##
 
 

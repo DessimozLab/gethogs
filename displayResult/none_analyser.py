@@ -98,14 +98,14 @@ def export_json_file(dict,fname):
 start_time = time.time()
 ############################
 
-taxonomic_json = "Homininae.json"
+taxonomic_json = "Homininae_HP.json"
 
 none_matches = {'cutting': [], 'bottom': []}
 xml_path_bottom = '../Result/OMA_HOG_bottom_none.xml'
 xml_path_cutting = '../Result/OMA_HOG_with_cutparam_0_65_oid.orthoxml.xml'
-FA_file = '../Result/OMA_bottom_None_Homininae.txt'
-FA_file_cutting = '../Result/OMA_cutting_0_Homininae.txt'
-namefileparam = 'NoneMatche_Homininae_None'
+FA_file = '../Result/OMA_bottom_None_Euarchontoglires.txt'
+FA_file_cutting = '../Result/OMA_cutting_0_Euarchontoglires.txt'
+namefileparam = 'NoneMatche_Euarchontoglires_None'
 
 # parse_json(path.json) return dict of none from cutting or bottom
 dict_none = parse_json(taxonomic_json)

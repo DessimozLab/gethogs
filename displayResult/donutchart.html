@@ -1,6 +1,9 @@
 <html>
 <head>
 
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.2.min.js"></script>
+
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 
@@ -12,8 +15,7 @@
 
 
 
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.2.min.js"></script>
+
 
 
     <script src="http://d3js.org/d3.v3.min.js" language="JavaScript"></script>
@@ -47,42 +49,94 @@
 
 </head>
 <body>
+
 <div class="container-fluid">
 
+    <div class="jumbotron" >
+        <h1>MOBA : Matches Oriented Benchmarchking Analyzer
+            <br/>
+            <small>Quick way to compare two orthoxml files containing HOGs.
+            </small>
+        </h1>
+        <p>A system of matches linked the two HOGs dataset in order to analyse the amount of similarity or search for difference</p>
+        <br/>
 
-     <div class="jumbotron" >
         <div class="row" >
-            <div class="col-md-8" style="height: 500px; overflow: scroll;">
-                <div id="wordtree_explicit" style="width: 2000; height: 500px;"></div>
+            <div class="col-xs-6 col-md-3">
+                <a href="#" class="1">
+                    <img src="perfect.png" alt="...">
+                </a>
+
             </div>
-            <div class="col-md-4" style="height: 500px;">
-                <div id="donut_taxon" style="width: 100%; height: 500px; "></div>
+            <div class="col-xs-6 col-md-3">
+                <a href="#" class="1">
+                    <img src="semi.png" alt="...">
+                </a>
+            </div>
+            <div class="col-xs-6 col-md-3">
+                <a href="#" class="1">
+                    <img src="multi.png" alt="...">
+                </a>
+            </div>
+            <div class="col-xs-6 col-md-3">
+                <a href="#" class="1">
+                    <img src="none.png" alt="...">
+                </a>
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+    <div class="jumbotron" >
+        <div class="row" >
+            <p>This section contains the specie tree of the dataset used, you can click on each clades to display related % of perfect matches. </p>
+
+            <div class="col-md-8" style="height: 400; overflow: scroll;">
+                <div id="wordtree_explicit" style="width: 2000; height: 400;"></div>
+            </div>
+            <div class="col-md-4" style="height: 400;">
+                <div id="donut_taxon" style="width: 100%; height: 400; "></div>
             </div>
         </div>
 
     </div>
 
-    <div class="jumbotron" style="height: 500px; ">
-        <div class="row" >
+    <div class="jumbotron" >
+
+        <div class="row " >
+            <p>This chart allows you to visualize the distribution of perfect matches depending of the taxonomic range. </p>
+
             <div class="col-md-12" >
-                <div id="linechart_material" style="width: 100%; height: 320px; "></div>
+                <div id="linechart_material" style="width: 100%; height: 300px; "></div>
             </div>
         </div>
-         <br/>
-         <div class="row" >
+        <br/>
+
+    </div>
+
+    <div class="alert alert-danger" style="text-align: center" role="alert"><span class="glyphicon glyphicon-alert" aria-hidden="true"></span> The section underneath provides information for the taxon selected below   <span class="glyphicon glyphicon-alert" aria-hidden="true"></span></div>
+
+    <div class="jumbotron">
+        <p style="text-align: center">Select a taxonomic range of interest.
+                    </p>
+        <div class="row" >
+
+
             <div class="col-md-12" >
 
-                <div class="panel panel-default" style="height: 100px;">
-                    <p style="text-align: center">Select a taxonomic range of interest.
-        </p>
+                <div class="panel panel-default" >
+
 
                     <div style="overflow-x: scroll;">
 
-                    <div class="btn-group btn-group-justified" id="specie_cloud" role="group" style="width: 3000; "aria-label="...">
+                        <div class="btn-group btn-group-justified" id="specie_cloud" role="group" style="width: 3000; "aria-label="...">
 
-</div>
-                        <br/>
                         </div>
+                        <br/>
+                    </div>
 
 
 
@@ -91,7 +145,6 @@
         </div>
     </div>
 
-    <div class="alert alert-danger" style="text-align: center" role="alert"><span class="glyphicon glyphicon-alert" aria-hidden="true"></span>  Under this all data displayed and all statistics computed depending to the taxonomic range of interest selected above. <span class="glyphicon glyphicon-alert" aria-hidden="true"></span></div>
 
     <div class="jumbotron" style="height: 400px; ">
         <div class="row" >
@@ -131,9 +184,9 @@
 
                 </div>
             </div>
-             <div class="col-md-3 " >
-            <svg id="fillgauge2" width="100%" height="320"></svg>
-                 </div>
+            <div class="col-md-3 " >
+                <svg id="fillgauge2" width="100%" height="320"></svg>
+            </div>
         </div>
     </div>
 
@@ -153,19 +206,41 @@
         </div>
     </div>
 
+
+
+    <div class="jumbotron">
+        <p style="text-align: center">Search for a gene and its family at each taxonomic range
+
+        <div class="row">
+           <div class="col-md-4 col-md-offset-4">
+    <div class="input-group">
+      <input type="text" class="form-control" placeholder="Search for..." id="inpsearchgene">
+      <span class="input-group-btn">
+        <button class="btn btn-default" type="button" id="btnsearchgene">Go!</button>
+      </span>
+    </div><!-- /input-group -->
+  </div><!-- /.col-lg-6 -->
+
+
+
+
+            </div>
+        </div>
+    </div>
+<!--
     <div class="jumbotron" style="height: 500px; overflow: scroll;">
         <div class="row">
 
-  <div class="col-lg-6 ">
-      <p>Please select a gene amoung None-matches.</p>
-    <div class="input-group">
-      <input type="text" class="form-control" placeholder="Search for a none-match gene " id="searchinput">
+            <div class="col-lg-6 ">
+                <p>Please select a gene amoung None-matches.</p>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search for a none-match gene " id="searchinput">
       <span class="input-group-btn">
         <button class="btn btn-default" type="button" id="searchbutton">Go!</button>
       </span>
-    </div><!-- /input-group -->
-      <br/>
-  </div><!-- /.col-lg-6 -->
+                </div>
+                <br/>
+            </div>
 
             <div class="col-md-6 ">
                 <div class="panel panel-default" style="height: 400px; overflow: scroll;">
@@ -179,7 +254,7 @@
                             <p class="list-group-item-text"><p id="adidata"></p></p>
                         </a>
                         <a href="#" class="list-group-item ">
-                            <h4 class="list-group-item-heading">Present in xml (mine)</h4>
+                            <h4 class="list-group-item-heading">Present in xml </h4>
                             <p class="list-group-item-text"><p id="mydata"></p></p>
                         </a>
                         <a href="#" class="list-group-item ">
@@ -192,48 +267,40 @@
         </div>
 
     </div>
+-->
 
 </div>
 
 <script src="wordtree_tinder.js" language="JavaScript"></script>
 
 <script type="text/javascript">
-    $.getJSON('lineage.json', function(data) {
-        for (var s in data.taxon){
-        createbutton(s, data.taxon[s]);
-        }
-    });
-    var taxon_selected;
-    function createbutton(name, percent){
 
-            var bntgroup = document.createElement("div");
-            bntgroup.role = "group";
-            bntgroup.className = "btn-group";
+    var sbg = document.getElementById('btnsearchgene');
+    var sig = document.getElementById('inpsearchgene');
+    sbg.onclick=function(){
+        alert(sig.value);
+        //$.getJSON("lineage.json", function(data_lineage) {
+            //$.each(data_lineage['taxon'], function (file, f) {
+                //$.getJSON(file + ".json", function(data_taxon) {
+                $.getJSON("Homininae.json", function(data_taxon) {
+                    $.each(data_taxon['tinder'], function (typem, f) {
+                        for (var i=0;i<f.length; i++ ){
+                            console.log(f[0]);
+                        }
+                            //$.each(data_taxon['tinder'][typem], function (matches, v) {
+                        //    console.log(matches);
+                        //})
+                    })
+                });
+            //})
+        //});
+    };
 
-            var element = document.createElement("button");
-            element.type = "button";
-            element.className = "btn btn-success";
-            element.value = name;
-            element.innerHTML= name +  ' <span class="badge">' +percent+'% </span> ';
-            element.onclick = function() { // Note this is a function
-                drawChartdonut(element.value+'.json');
-                change_taxon_info(element.value+'.json');
-                taxon_selected = element.value;
-                };
 
-                parent = document.getElementById("specie_cloud");
-                bntgroup.appendChild(element);
-            parent.appendChild(bntgroup);
-
-    }
 
   </script>
 
-
-
-
-
-    <script type="text/javascript">
+<script type="text/javascript">
 
       google.setOnLoadCallback(drawChart('lineage.json'));
       function drawChart(filename) {
@@ -244,13 +311,14 @@
       data.addColumn('number', 'HP');
       data.addColumn('number', 'GHP');
       data.addColumn('number', 'MR');
+      data.addColumn('number', 'alpha');
 
 
 
 
     $.each(data_taxon['perfect_chart'], function (key, f) {
         data.addRows([
-        [key,  data_taxon['perfect_chart'][key][0],data_taxon['perfect_chart'][key][1],data_taxon['perfect_chart'][key][2],data_taxon['perfect_chart'][key][3] ]
+        [key,  data_taxon['perfect_chart'][key][0],data_taxon['perfect_chart'][key][1],data_taxon['perfect_chart'][key][2],data_taxon['perfect_chart'][key][3],95 ]
 
         ]);
 
@@ -261,10 +329,12 @@
         var options = {
           title: '% of perfect matches depending of taxon',
           curveType: 'none',
+          seriesType: "bars",
+          series: {4: {type: "line"}}
 
         };
 
-        var chart = new google.visualization.ColumnChart(document.getElementById('linechart_material'));
+        var chart = new google.visualization.ComboChart(document.getElementById('linechart_material'));
 
         chart.draw(data, options);
         });
@@ -416,8 +486,40 @@ function change_taxon_info(filename){
         </script>
 
 <script type="text/javascript">
+    $.getJSON('lineage.json', function(data) {
+        for (var s in data.taxon){
+        createbutton(s, data.taxon[s]);
+        }
+    });
+    var taxon_selected;
+    function createbutton(name, percent){
 
+            var bntgroup = document.createElement("div");
+            bntgroup.role = "group";
+            bntgroup.className = "btn-group";
 
+            var element = document.createElement("button");
+            element.type = "button";
+            element.className = "btn btn-success";
+            element.value = name;
+            element.innerHTML= name +  ' <span class="badge">' +percent+'% </span> ';
+            element.onclick = function() { // Note this is a function
+                drawChartdonut(element.value+'.json');
+                change_taxon_info(element.value+'.json');
+                taxon_selected = element.value;
+                };
+
+                parent = document.getElementById("specie_cloud");
+                bntgroup.appendChild(element);
+            parent.appendChild(bntgroup);
+
+    }
+
+  </script>
+
+<script type="text/javascript">
+
+/*
             var v = document.getElementById('bout');
             v.onclick=function(){
             var table = document.getElementById('table_div');
@@ -439,7 +541,7 @@ function change_taxon_info(filename){
             for (var gb in data['bottom']){
                 if (data['bottom'][gb]["id"] === si.value){
                     gene = data['bottom'][gb];
-                    type = 'cutting';
+                    type = 'bottom';
                     found = 'true';
                     }
             }
@@ -452,7 +554,7 @@ function change_taxon_info(filename){
             }
             if (found === 'true'){
             var nm = document.getElementById('gene_id');
-            nm.innerHTML = gene.id + '  <span class="badge">'+type +'</span>';
+            nm.innerHTML = gene.id + '  <span class="badge">'+ type +'</span>';
 
             var f = document.getElementById('adidata');
 
@@ -473,12 +575,9 @@ function change_taxon_info(filename){
 
             });
             };
+            */
 
 </script>
-
-
-
-
 
 </body>
 
