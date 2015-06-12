@@ -3,7 +3,7 @@ __author__ = 'traincm'
 from Bio import Phylo
 from classes import *
 from HOG import *
-from fileMap import *
+import fileMap
 #import xml.etree.cElementTree as etree
 import lxml.etree as etree
 from math import *
@@ -32,7 +32,7 @@ def recursive_traversal(node,groupsxml):
 # Create a actual genome with its name and its genes number
 def create_actualGenome(genome_name,groupsxml):
     acgenome=ActualGenome(genome_name)
-    acgenome.create_genome_HOG_and_Gene(genomeSize[acgenome.specie[0]],groupsxml)
+    acgenome.create_genome_HOG_and_Gene(fileMap.genomeSize[acgenome.specie[0]],groupsxml)
     return acgenome
 
 
@@ -62,7 +62,7 @@ def create_xml_tree(root_tag,originVersion,origin,version,xmlns):
 
 def fill_specie_xml(treeOfLife):
 
-    for specie in ActualGenome.getinstances():
+    for specie in sorted(ActualGenome.getinstances(), key=lambda x: x.specie[0]):
 
         actualgenomexml = etree.Element("species")
         treeOfLife.insert(0, actualgenomexml)
@@ -146,13 +146,13 @@ def create_xml_solo_hog(groupsxml,hog,specie):
     return hogxml
 
 
-def finish_xml_and_export(treeOfLife,param_name):
+def finish_xml_and_export(treeOfLife, fn):
     # Add each <specie> into orthoXML
     fill_specie_xml(treeOfLife)
     replace_xml_hog_with_gene()
     indent(treeOfLife)
     tree = etree.ElementTree(treeOfLife)
-    tree.write("OMA_HOG_bottom_"+param_name+".xml", xml_declaration=True, encoding='utf-8', method="xml")
+    tree.write(fn, xml_declaration=True, encoding='utf-8', method="xml")
 
 
 # Initialisation of <orthoXML>

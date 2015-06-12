@@ -6,29 +6,36 @@ from math import *
 
 
 
-prefix = 'for_clement/'
+prefix = None
 prefix_display = '../for_clement/'
-#prefix = 'PERFECTDATA/'
 suffix = '.orth.txt'
 genome_pairs_data = []
 
+genomeSize = None
+Folder = None
 
+def set_dataset(ds):
+    global prefix
+    global Folder
+    global genomeSize
+    if ds=='big':
+        # Mapping Files, only for testing genomes in my files !!
+        CANFA = ['PANTR', 'RATNO', 'GORGO']
+        HUMAN = ['CANFA', 'MOUSE', 'PANTR', 'RATNO', 'GORGO']
+        MOUSE = ['CANFA', 'PANTR',  'RATNO', 'GORGO']
+        PANTR = ['GORGO']
+        RATNO = ['PANTR','GORGO']
+        Folder = {'CANFA': CANFA, 'HUMAN': HUMAN, 'MOUSE': MOUSE, 'PANTR': PANTR, 'RATNO': RATNO, 'GORGO':[]}
+        genomeSize = {'CANFA': 20610, 'HUMAN': 31589, 'MOUSE': 25724, 'PANTR': 18936, 'RATNO': 22690, 'GORGO':21822}
+        prefix = 'for_clement/'
+    elif ds=='tiny':
+        HUMAN = ['MOUSE', 'PANTR', 'RATNO']
+        MOUSE = ['RATNO']
+        PANTR = ['MOUSE', 'RATNO']
+        Folder = {'HUMAN': HUMAN, 'MOUSE': MOUSE, 'PANTR': PANTR, 'RATNO': []}
+        genomeSize = {'HUMAN': 3, 'MOUSE': 3, 'PANTR': 2, 'RATNO': 2}
+        prefix = 'PERFECTDATA/'
 
-# Mapping Files, only for testing genomes in my files !!
-CANFA = ['PANTR', 'RATNO', 'GORGO']
-HUMAN = ['CANFA', 'MOUSE', 'PANTR', 'RATNO', 'GORGO']
-MOUSE = ['CANFA', 'PANTR',  'RATNO', 'GORGO']
-PANTR = ['GORGO']
-RATNO = ['PANTR','GORGO']
-Folder = {'CANFA': CANFA, 'HUMAN': HUMAN, 'MOUSE': MOUSE, 'PANTR': PANTR, 'RATNO': RATNO, 'GORGO':[]}
-genomeSize = {'CANFA': 20610, 'HUMAN': 31589, 'MOUSE': 25724, 'PANTR': 18936, 'RATNO': 22690, 'GORGO':21822}
-'''
-HUMAN = ['MOUSE', 'PANTR', 'RATNO']
-MOUSE = ['RATNO']
-PANTR = ['MOUSE', 'RATNO']
-Folder = {'HUMAN': HUMAN, 'MOUSE': MOUSE, 'PANTR': PANTR, 'RATNO': []}
-genomeSize = {'HUMAN': 3, 'MOUSE': 3, 'PANTR': 2, 'RATNO': 2}
-'''
 
 
 def genome_order(genome1,genome2):
