@@ -9,17 +9,17 @@ import unionfind as UNION
 import lxml.etree as etree
 import tree_function
 
-def mergeTwoGenome(newgenome, genome1,genome2,groupsxml):
+def mergeTwoGenome(newgenome, genome1, genome2, groupsxml):
 
     newHOGs = []
     matrix = np.zeros([genome1.getNumberOfHOGs(), genome2.getNumberOfHOGs()], dtype=int)
 
-    # Find Orthologous relations between all genes of all specie
-    for i in genome1.specie:
-        genomei = classes.ActualGenome.find_genome_by_name(i)
-        for j in genome2.specie:
-            genomej = classes.ActualGenome.find_genome_by_name(j)
-            align_twospecie_fill_matrix(genomei, genomej, matrix, genome1, genome2)
+    # Find Orthologous relations between all genes of all species
+    for i in genome1.species:
+        actual_genome1 = classes.ActualGenome.find_genome_by_name(i)
+        for j in genome2.species:
+            actual_genome2 = classes.ActualGenome.find_genome_by_name(j)
+            align_twospecie_fill_matrix(actual_genome1, actual_genome2, matrix, genome1, genome2)
 
     # Find all HOGs relations in the matrix
     start_time = time.time()
@@ -52,10 +52,10 @@ def mergeTwoGenome(newgenome, genome1,genome2,groupsxml):
         taxon = etree.SubElement(anchogxml, "property")
         taxon.set("name", 'TaxRange')
         strtaxon=''
-        for specie in genome1.specie:
-            strtaxon=strtaxon+str(specie)
-        for specie in genome2.specie:
-            strtaxon=strtaxon+str(specie)
+        for species in genome1.species:
+            strtaxon=strtaxon+str(species)
+        for species in genome2.species:
+            strtaxon=strtaxon+str(species)
         taxon.set("value", strtaxon)
         cnt_in_genome1 = sum(map(lambda e: e>=size[1], con))
         cnt_in_genome2 = len(con) - cnt_in_genome1
@@ -102,26 +102,26 @@ def updatesoloHOGs(positions,genome,newgenome,newHOGs):
 
 
 
-def align_twospecie_fill_matrix(genomei,genomej,matrix,genome1,genome2):
-    data, inverted = file.loadfile(genomei, genomej)
+def align_twospecie_fill_matrix(actual_genome1, actual_genome2, matrix, genome1, genome2):
+    data, inverted = file.loadfile(actual_genome1, actual_genome2)
     start_time = time.time()
     try:
         numberOfOrthologs=len(data['gene1'])
         for i in range(numberOfOrthologs):
             raw = data[i]
-            find_hog_fill_matrix_cell(inverted,genomei,genomej,genome1,genome2,raw,matrix)
+            find_hog_fill_matrix_cell(inverted,actual_genome1,actual_genome2,genome1,genome2,raw,matrix)
 
     except TypeError:
         raw = data
-        find_hog_fill_matrix_cell(inverted,genomei,genomej,genome1,genome2,raw,matrix)
-    print("--- %s seconds ---" % (time.time() - start_time),'*** align two specie ***', genomei, genomej)
+        find_hog_fill_matrix_cell(inverted,actual_genome1,actual_genome2,genome1,genome2,raw,matrix)
+    print("--- %s seconds ---" % (time.time() - start_time),'*** align two species ***', actual_genome1, actual_genome2)
 
 
-def find_hog_fill_matrix_cell(inverted,genomei,genomej,genome1,genome2,raw,matrix):
+def find_hog_fill_matrix_cell(inverted, actual_genome1, actual_genome2, genome1, genome2, raw, matrix):
     if inverted:
-        hogOfgene1 = genomei.genes[raw['gene2']-1].hog[genome1]
-        hogOfgene2 = genomej.genes[raw['gene1']-1].hog[genome2]
+        hogOfgene1 = actual_genome1.get_gene_by_nr(raw['gene2']).get_hog(genome1)
+        hogOfgene2 = actual_genome2.get_gene_by_nr(raw['gene1']).get_hog(genome2)
     else:
-        hogOfgene1 = genomei.genes[raw['gene1']-1].hog[genome1]
-        hogOfgene2 = genomej.genes[raw['gene2']-1].hog[genome2]
+        hogOfgene1 = actual_genome1.get_gene_by_nr(raw['gene1']).get_hog(genome1)
+        hogOfgene2 = actual_genome2.get_gene_by_nr(raw['gene2']).get_hog(genome2)
     matrix[genome1.HOGS.index(hogOfgene1)][genome2.HOGS.index(hogOfgene2)] +=1

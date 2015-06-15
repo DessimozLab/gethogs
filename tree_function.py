@@ -32,7 +32,7 @@ def recursive_traversal(node,groupsxml):
 # Create a actual genome with its name and its genes number
 def create_actualGenome(genome_name,groupsxml):
     acgenome=ActualGenome(genome_name)
-    acgenome.create_genome_HOG_and_Gene(fileMap.genomeSize[acgenome.specie[0]],groupsxml)
+    acgenome.create_genome_HOG_and_Gene(fileMap.genomeSize[acgenome.species[0]],groupsxml)
     return acgenome
 
 
@@ -43,8 +43,8 @@ def create_ancestralGenome(child,groupsxml):
         children.append(c.genome)
     angenome = AncestralGenome(children)
     for chi in children:
-        for i in range(len(chi.specie)):
-            angenome.specie.append(chi.specie[i])
+        for i in range(len(chi.species)):
+            angenome.species.append(chi.species[i])
     start_time = time.time()
     angenome.HOGS = mergeTwoGenome(angenome, children[0],children[1],groupsxml)
     print("--- %s seconds ---" % (time.time() - start_time), 'MERGING', children[0], children[1])
@@ -60,16 +60,16 @@ def create_xml_tree(root_tag,originVersion,origin,version,xmlns):
     return treeOfLife
 
 
-def fill_specie_xml(treeOfLife):
+def fill_species_xml(treeOfLife):
 
-    for specie in sorted(ActualGenome.getinstances(), key=lambda x: x.specie[0]):
+    for species in sorted(ActualGenome.getinstances(), key=lambda x: x.species[0]):
 
         actualgenomexml = etree.Element("species")
         treeOfLife.insert(0, actualgenomexml)
-        actualgenomexml.set("name", specie.specie[0])
+        actualgenomexml.set("name", species.species[0])
         actualgenomexml.set("NCBITaxId", '0')
 
-        # Add <database> into <specie>
+        # Add <database> into <species>
         databasexml = etree.SubElement(actualgenomexml, "database")
         databasexml.set("name", 'randomDB')
         databasexml.set("version", '42')
@@ -79,11 +79,11 @@ def fill_specie_xml(treeOfLife):
 
 
         # Fill <genes> with <gene>
-        for gene in specie.genes:
+        for gene in species.genes:
             genexml = etree.SubElement(genesxml, "gene")
             genexml.set("id", str(gene.UniqueId))
-            no = log10(gene.specieId)
-            genexml.set("protId", gene.specie[0] +(4-trunc(no))*'0' + str(gene.specieId))
+            no = log10(gene.speciesId)
+            genexml.set("protId", gene.species[0] +(4-trunc(no))*'0' + str(gene.speciesId))
 
 
 
@@ -93,8 +93,8 @@ def fill_specie_xml(treeOfLife):
 def recursive_traversal_hog_xml(node,nodexml,hog):
     for child in node:
         if child.name:
-            if child.genome.specie[0] in hog.genes.keys():
-                genes= hog.genes[child.genome.specie[0]]
+            if child.genome.species[0] in hog.genes.keys():
+                genes= hog.genes[child.genome.species[0]]
                 for e in genes:
                     genexml = etree.SubElement(nodexml, "geneRef")
                     genexml.set("id", str(e.UniqueId))
@@ -137,25 +137,27 @@ def replace_xml_hog_with_gene():
     [replacesolohog(b) for b in treeOfLife.iterfind(".//ortholGroup[@genehog]")]
 
 
-def create_xml_solo_hog(groupsxml,hog,specie):
+def create_xml_solo_hog(groupsxml,hog,species):
     hogxml = etree.SubElement(groupsxml, "ortholGroup")
-    gene = hog.genes[specie][0]
+    gene = hog.genes[species][0]
     hogxml.set('genehog',str(gene.UniqueId))
-    no = log10(gene.specieId)
-    hogxml.set("protId", gene.specie[0] +(4-trunc(no))*'0' + str(gene.specieId))
+    no = log10(gene.speciesId)
+    hogxml.set("protId", gene.species[0] +(4-trunc(no))*'0' + str(gene.speciesId))
     return hogxml
 
 
 def finish_xml_and_export(treeOfLife, fn):
-    # Add each <specie> into orthoXML
-    fill_specie_xml(treeOfLife)
+    # Add each <species> into orthoXML
+    fill_species_xml(treeOfLife)
     replace_xml_hog_with_gene()
     indent(treeOfLife)
     tree = etree.ElementTree(treeOfLife)
     tree.write(fn, xml_declaration=True, encoding='utf-8', method="xml")
 
 
-# Initialisation of <orthoXML>
+
+
 treeOfLife = create_xml_tree("orthoXML",'Sep 2014','OMA','0.3','http://orthoXML.org/2011/')
-# Add <groups> into orthoXML
+    # Add <groups> into orthoXML
 groupsxml = etree.SubElement(treeOfLife, "groups")
+

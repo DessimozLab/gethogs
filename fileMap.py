@@ -39,7 +39,7 @@ def set_dataset(ds):
 
 
 def genome_order(genome1,genome2):
-    if genome2.specie[0] not in Folder[genome1.specie[0]]:
+    if genome2.species[0] not in Folder[genome1.species[0]]:
             return genome2, genome1, True
     return genome1, genome2, False
 
@@ -47,10 +47,10 @@ def genome_order(genome1,genome2):
 def loadfile(genome1,genome2):
     genome1, genome2,inverted = genome_order(genome1, genome2)
     for pairdata in genome_pairs_data:
-        if genome1.specie[0] in pairdata['genome'] and genome2.specie[0] in pairdata['genome']:
-            print('file between', genome1.specie[0], "and", genome2.specie[0], 'already exist')
+        if genome1.species[0] in pairdata['genome'] and genome2.species[0] in pairdata['genome']:
+            print('file between', genome1.species[0], "and", genome2.species[0], 'already exist')
             return pairdata['data']
-    filename = prefix+genome1.specie[0]+'/'+genome2.specie[0]+suffix
+    filename = prefix+genome1.species[0]+'/'+genome2.species[0]+suffix
     data = np.genfromtxt(filename, dtype=None, delimiter="", usecols=(0, 1, 2, 3), names = ['gene1', 'gene2', 'score', 'type'])
     pairs = {'data': data, 'genome': [genome1, genome2]}
     genome_pairs_data.append(pairs)
