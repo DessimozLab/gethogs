@@ -2,14 +2,11 @@ __author__ = 'traincm'
 
 import numpy as np
 import classes as classes
-import fileMap as file
 import time
 import unionfind as UNION
-#import xml.etree.cElementTree as etree
 import lxml.etree as etree
-import tree_function
 
-def mergeTwoGenome(newgenome, genome1, genome2, groupsxml):
+def mergeTwoGenome(newgenome, genome1, genome2, hierarchical_merger):
 
     newHOGs = []
     matrix = np.zeros([genome1.getNumberOfHOGs(), genome2.getNumberOfHOGs()], dtype=int)
@@ -19,7 +16,7 @@ def mergeTwoGenome(newgenome, genome1, genome2, groupsxml):
         actual_genome1 = classes.ActualGenome.find_genome_by_name(i)
         for j in genome2.species:
             actual_genome2 = classes.ActualGenome.find_genome_by_name(j)
-            align_twospecie_fill_matrix(actual_genome1, actual_genome2, matrix, genome1, genome2)
+            align_twospecie_fill_matrix(actual_genome1, actual_genome2, matrix, genome1, genome2,hierarchical_merger)
 
     # Find all HOGs relations in the matrix
     start_time = time.time()
@@ -47,7 +44,7 @@ def mergeTwoGenome(newgenome, genome1, genome2, groupsxml):
     connectedComponents = connectedComponents.get_components()
     for con in connectedComponents:
         newHOG = classes.HOG()
-        anchogxml = etree.SubElement(groupsxml, "orthologGroup")
+        anchogxml = etree.SubElement(hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
         newHOG.xml=anchogxml
         taxon = etree.SubElement(anchogxml, "property")
         taxon.set("name", 'TaxRange')
@@ -102,8 +99,8 @@ def updatesoloHOGs(positions,genome,newgenome,newHOGs):
 
 
 
-def align_twospecie_fill_matrix(actual_genome1, actual_genome2, matrix, genome1, genome2):
-    data, inverted = file.loadfile(actual_genome1, actual_genome2)
+def align_twospecie_fill_matrix(actual_genome1, actual_genome2, matrix, genome1, genome2,hierarchical_merger):
+    data, inverted = hierarchical_merger.filemap.loadfile(actual_genome1, actual_genome2)
     start_time = time.time()
     try:
         numberOfOrthologs=len(data['gene1'])

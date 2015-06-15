@@ -1,8 +1,6 @@
 __author__ = 'traincm'
 
-
-import numpy as np
-from math import *
+from main import *
 
 
 
