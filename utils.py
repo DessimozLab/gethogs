@@ -1,8 +1,6 @@
 __author__ = 'traincm'
 
 import classes as K
-import time as time
-import HOG as hog
 import lxml.etree as etree
 from math import *
 from Bio import Phylo
