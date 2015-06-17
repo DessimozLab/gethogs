@@ -17,26 +17,13 @@ def draw_tree(tree):
     tree.ladderize()
     Phylo.draw_ascii(tree)
 
+
 def create_actualGenome(genome_name, hierarchical_merger):
         groupsxml = hierarchical_merger.XML_manager.groupsxml
         numberOfGenes = hierarchical_merger.filemap.genomeSize[genome_name]
         acgenome = K.ActualGenome(genome_name)
         acgenome.create_genome_HOG_and_Gene(numberOfGenes,groupsxml)
         return acgenome
-
-
-def create_ancestralGenome(child, hierarchical_merger):
-    children = []
-    for c in child:
-        children.append(c.genome)
-    angenome = K.AncestralGenome(children)
-    for chi in children:
-        for i in range(len(chi.species)):
-            angenome.species.append(chi.species[i])
-    start_time = time.time()
-    angenome.HOGS = hog.mergeTwoGenome(angenome, children[0],children[1],hierarchical_merger)
-    print("--- %s seconds ---" % (time.time() - start_time), 'MERGING', children[0], children[1])
-    return angenome
 
 
 def create_xml_tree(root_tag,originVersion,origin,version,xmlns):

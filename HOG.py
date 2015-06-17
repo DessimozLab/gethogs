@@ -6,6 +6,9 @@ import time
 import unionfind as UNION
 import lxml.etree as etree
 
+
+
+
 def mergeTwoGenome(newgenome, genome1, genome2, hierarchical_merger):
 
     newHOGs = []
