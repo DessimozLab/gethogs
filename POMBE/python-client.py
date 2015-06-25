@@ -104,8 +104,8 @@ print 'OMA version %s with %d groups and %d species' % \
 print
 '''
 # GetEntry('HUMAN666');
-print '=== GetEntry(\'HUMAN1\') ==='
+print('=== GetEntry(\'HUMAN1\') ===')
 entry = oma.GetEntry(EntryID='Q9US34')
-print 'Organism'.ljust(15), entry['Organism']
-print 'Locus'.ljust(15),'Chromosome',entry['Chromosome'],':',entry['Locus']
-print 'Sequence'.ljust(15), entry['Sequence']
+print('Organism'.ljust(15), entry['Organism'])
+print('Locus'.ljust(15),'Chromosome',entry['Chromosome'],':',entry['Locus'])
+print('Sequence'.ljust(15), entry['Sequence'])

@@ -5,7 +5,7 @@ from SOAPpy import WSDL
 import time as time
 
 # loading the methdos definitions from WSDL
-url = 'http://omabrowser.org/omabrowser.wsdl'
+url = 'http://omadev.cs.ucl.ac.uk/omabrowser.wsdl'
 oma = WSDL.Proxy(url)
 
 # parse Pom2Uni into dict
