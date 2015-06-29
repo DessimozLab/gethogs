@@ -1,0 +1,10 @@
+build
+dist
+*/__pycache__
+familyanalyzer.egg-info
+*.pyc
+test/test_comparisongraph.py
+test/simpleExAugmented.orthoxml
+.ropeproject
+.idea
+.ipynb_checkpoints
