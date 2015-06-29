@@ -32,10 +32,10 @@ def main_pipeline_FA(cut):
     pathfolder_output="../Result/OMA_cutting_"+cutting_param+"/FA/"
     for taxon in taxons:
         if taxon =='Homininae':
-            os.system("../family-analyzer/bin/familyanalyzer --xreftag omaId "+ pathfile_cutting +" "+ taxon +" HUMAN PANTR GORGO >"  +pathfolder_output+ "Homininae.txt" )
-            os.system("../family-analyzer/bin/familyanalyzer --xreftag omaId "+ pathfile_cutting +" "+ taxon +" HUMAN PANTR >"  +pathfolder_output+ "Homininae_HP.txt" )
+            os.system("cd ../family-analyzer; bin/familyanalyzer --xreftag omaId "+ pathfile_cutting +" "+ taxon +" HUMAN PANTR GORGO >"  +pathfolder_output+ "Homininae.txt" )
+            os.system("cd ../family-analyzer; bin/familyanalyzer --xreftag omaId "+ pathfile_cutting +" "+ taxon +" HUMAN PANTR >"  +pathfolder_output+ "Homininae_HP.txt" )
         elif taxon == "Murinae":
-            os.system("../family-analyzer/bin/familyanalyzer --xreftag omaId "+ pathfile_cutting +" "+ taxon +" MOUSE RATNO >"  +pathfolder_output+ "Murinae.txt" )
+            os.system("cd ../family-analyzer; bin/familyanalyzer --xreftag omaId "+ pathfile_cutting +" "+ taxon +" MOUSE RATNO >"  +pathfolder_output+ "Murinae.txt" )
         elif taxon == "Euarchontoglires":
             write_output_FA_into_file("Euarchontoglires.txt", ["HUMAN", "PANTR", "GORGO", "MOUSE", "RATNO"], taxon)
             write_output_FA_into_file("Euarchontoglires_GHP.txt", ["HUMAN", "PANTR", "GORGO"], taxon)
