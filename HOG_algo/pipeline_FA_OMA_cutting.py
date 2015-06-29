@@ -32,7 +32,7 @@ def main_pipeline_FA(cut):
         '''
         elif taxon == "Euarchontoglires":
             write_output_FA_into_file("Euarchontoglires.txt", ["HUMAN", "PANTR", "GORGO", "MOUSE", "RATNO"], taxon)
-            write_output_FA_into_file("Euarchontoglires_GHP.txt", ["HUMAN", "PANTR", "GORGO"], taxon)
+            write_output_FA_into_files"Euarchontoglires_GHP.txt", ["HUMAN", "PANTR", "GORGO"], taxon)
             write_output_FA_into_file("Euarchontoglires_HP.txt", ["HUMAN", "PANTR"], taxon)
             write_output_FA_into_file("Euarchontoglires_MR.txt", ["MOUSE", "RATNO"], taxon)
         elif taxon == "Boreoeutheria":
