@@ -13,3 +13,6 @@ def main_pipeline_FA():
         elif taxon == "Murinae":
             os.system("cd ../family-analyzer; ./bin/familyanalyzer --xreftag protId "+ "../Result/"+classes.Settings.dir_name_param+"/"+ classes.Settings.xml_name_param +" "+ "MOUSERATNO" +" MOUSE RATNO >"  +"../Result/"+ classes.Settings.dir_name_param+"/FA/"+ "Murinae.txt" )
 
+
+
+
