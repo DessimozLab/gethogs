@@ -6,9 +6,6 @@ import os
 
 taxons=["Homininae","Murinae"]
 
-
-
-
 def main_pipeline_FA():
     for taxon in taxons:
         if taxon =='Homininae':
