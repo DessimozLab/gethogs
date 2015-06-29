@@ -1,0 +1,594 @@
+<html>
+<head>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.2.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+
+
+
+
+
+    <script src="http://d3js.org/d3.v3.min.js" language="JavaScript"></script>
+    <script src="liquidFillGauge.js" language="JavaScript"></script>
+    <style>
+        .liquidFillGaugeText { font-family: Helvetica; font-weight: bold; }
+    </style>
+
+    <style type="text/css">
+        .header_table{
+        font: 2em Helvetica Neue;
+        color : #fff;
+        text-align: center !important;
+        background: rgba(0, 0, 0, .5);
+        }
+        .StyleRows {
+        background-color: #fff;
+        color: #6E7D87;
+        font: 1.2em Helvetica Neue;
+        min-height:20px;
+        text-align: center !important;
+        }
+
+        .StyleRows:hover {color: #0e2f44;
+        font-weight: bold;
+        }
+
+    </style>
+
+
+
+</head>
+<body>
+
+<div class="container-fluid">
+
+    <div class="jumbotron" >
+        <h1>MOBA : Matches Oriented Benchmarchking Analyzer
+            <br/>
+            <small>Quick way to compare two orthoxml files containing HOGs.
+            </small>
+        </h1>
+        <p>A system of matches linked the two HOGs dataset in order to analyse the amount of similarity or search for difference</p>
+        <br/>
+
+        <div class="row" >
+            <div class="col-xs-6 col-md-3">
+                <a href="#" class="1">
+                    <img src="perfect.png" alt="...">
+                </a>
+
+            </div>
+            <div class="col-xs-6 col-md-3">
+                <a href="#" class="1">
+                    <img src="semi.png" alt="...">
+                </a>
+            </div>
+            <div class="col-xs-6 col-md-3">
+                <a href="#" class="1">
+                    <img src="multi.png" alt="...">
+                </a>
+            </div>
+            <div class="col-xs-6 col-md-3">
+                <a href="#" class="1">
+                    <img src="none.png" alt="...">
+                </a>
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+    <div class="jumbotron" >
+        <div class="row" >
+            <p>This section contains the specie tree of the dataset used, you can click on each clades to display related % of perfect matches. </p>
+
+            <div class="col-md-8" style="height: 400; overflow: scroll;">
+                <div id="wordtree_explicit" style="width: 2000; height: 400;"></div>
+            </div>
+            <div class="col-md-4" style="height: 400;">
+                <div id="donut_taxon" style="width: 100%; height: 400; "></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="jumbotron" >
+
+        <div class="row " >
+            <p>This chart allows you to visualize the distribution of perfect matches depending of the taxonomic range. </p>
+
+            <div class="col-md-12" >
+                <div id="linechart_material" style="width: 100%; height: 300px; "></div>
+            </div>
+        </div>
+        <br/>
+
+    </div>
+
+    <div class="alert alert-danger" style="text-align: center" role="alert"><span class="glyphicon glyphicon-alert" aria-hidden="true"></span> The section underneath provides information for the taxon selected below   <span class="glyphicon glyphicon-alert" aria-hidden="true"></span></div>
+
+    <div class="jumbotron">
+        <p style="text-align: center">Select a taxonomic range of interest.
+                    </p>
+        <div class="row" >
+
+
+            <div class="col-md-12" >
+
+                <div class="panel panel-default" >
+
+
+                    <div style="overflow-x: scroll;">
+
+                        <div class="btn-group btn-group-justified" id="specie_cloud" role="group" style="width: 3000; "aria-label="...">
+
+                        </div>
+                        <br/>
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="jumbotron" style="height: 400px; ">
+        <div class="row" >
+            <div class="col-md-5" >
+                <div id="donutchart" style="width: 100%; height: 320px; "></div></div>
+            <div class="col-md-4 " >
+                <div class="panel panel-default" style="height: 320px; overflow: scroll;">
+
+                    <div class="list-group">
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Number of matches </h4>
+                            <p class="list-group-item-text"><p id="total_match"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Taxon</h4>
+                            <p class="list-group-item-text"><p id="taxon"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Number of Perfect</h4>
+                            <p class="list-group-item-text"><p id="number_perfect"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Number of multi</h4>
+                            <p class="list-group-item-text"><p id="number_multi"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Number of none</h4>
+                            <p class="list-group-item-text"><p id="number_none"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Number of semi</h4>
+                            <p class="list-group-item-text"><p id="number_semi"></p></p>
+                        </a>
+
+                    </div>
+
+
+                </div>
+            </div>
+            <div class="col-md-3 " >
+                <svg id="fillgauge2" width="100%" height="320"></svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="jumbotron" style="height: 530px; overflow: scroll;">
+        <p style="text-align: center">Choose a type of match on the donut chart or the list above to display details.
+            <button type="button" id="bout" class="btn btn-default btn-sm"> Hide
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </button></p>
+        <div class="row">
+            <div class="col-md-12 ">
+
+                <div id="table_div_parent" style="width: 100%;"></div>
+
+                <div id="table_div" style="height:380px "></div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="jumbotron">
+        <p style="text-align: center">Search for a gene and its family at each taxonomic range
+
+        <div class="row">
+           <div class="col-md-4 col-md-offset-4">
+    <div class="input-group">
+      <input type="text" class="form-control" placeholder="Search for..." id="inpsearchgene">
+      <span class="input-group-btn">
+        <button class="btn btn-default" type="button" id="btnsearchgene">Go!</button>
+      </span>
+    </div><!-- /input-group -->
+  </div><!-- /.col-lg-6 -->
+
+
+
+
+            </div>
+        </div>
+    </div>
+<!--
+    <div class="jumbotron" style="height: 500px; overflow: scroll;">
+        <div class="row">
+
+            <div class="col-lg-6 ">
+                <p>Please select a gene amoung None-matches.</p>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search for a none-match gene " id="searchinput">
+      <span class="input-group-btn">
+        <button class="btn btn-default" type="button" id="searchbutton">Go!</button>
+      </span>
+                </div>
+                <br/>
+            </div>
+
+            <div class="col-md-6 ">
+                <div class="panel panel-default" style="height: 400px; overflow: scroll;">
+                    <div class="list-group">
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">ID of the gene </h4>
+                            <p class="list-group-item-text"><p id="gene_id"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Present in data (adrian)</h4>
+                            <p class="list-group-item-text"><p id="adidata"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Present in xml </h4>
+                            <p class="list-group-item-text"><p id="mydata"></p></p>
+                        </a>
+                        <a href="#" class="list-group-item ">
+                            <h4 class="list-group-item-heading">Present in txt (Family Analyser)</h4>
+                            <p class="list-group-item-text"><p id="FA_data"></p></p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+-->
+
+</div>
+
+<script src="wordtree_tinder.js" language="JavaScript"></script>
+
+<script type="text/javascript">
+
+    var sbg = document.getElementById('btnsearchgene');
+    var sig = document.getElementById('inpsearchgene');
+    sbg.onclick=function(){
+        alert(sig.value);
+        //$.getJSON("lineage.json", function(data_lineage) {
+            //$.each(data_lineage['taxon'], function (file, f) {
+                //$.getJSON(file + ".json", function(data_taxon) {
+                $.getJSON("Homininae.json", function(data_taxon) {
+                    $.each(data_taxon['tinder'], function (typem, f) {
+                        for (var i=0;i<f.length; i++ ){
+                            console.log(f[0]);
+                        }
+                            //$.each(data_taxon['tinder'][typem], function (matches, v) {
+                        //    console.log(matches);
+                        //})
+                    })
+                });
+            //})
+        //});
+    };
+
+
+
+  </script>
+
+<script type="text/javascript">
+
+      google.setOnLoadCallback(drawChart('lineage.json'));
+      function drawChart(filename) {
+      $.getJSON(filename, function(data_taxon) {
+        var data = new google.visualization.DataTable();
+      data.addColumn('string', 'taxon');
+      data.addColumn('number', 'FULL TAXON');
+      data.addColumn('number', 'HP');
+      data.addColumn('number', 'GHP');
+      data.addColumn('number', 'MR');
+      data.addColumn('number', 'alpha');
+
+
+
+
+    $.each(data_taxon['perfect_chart'], function (key, f) {
+        data.addRows([
+        [key,  data_taxon['perfect_chart'][key][0],data_taxon['perfect_chart'][key][1],data_taxon['perfect_chart'][key][2],data_taxon['perfect_chart'][key][3],95 ]
+
+        ]);
+
+    })
+
+
+
+        var options = {
+          title: '% of perfect matches depending of taxon',
+          curveType: 'none',
+          seriesType: "bars",
+          series: {4: {type: "line"}}
+
+        };
+
+        var chart = new google.visualization.ComboChart(document.getElementById('linechart_material'));
+
+        chart.draw(data, options);
+        });
+      }
+    </script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+      $.ajaxSetup({ cache: false });
+    });
+
+    //google.load("visualization", "1", {packages:["corechart"]});
+    //google.setOnLoadCallback(drawChart);
+
+
+    function drawChartdonut(filename) {
+    $.getJSON(filename, function(data_taxon) {
+
+      var data = google.visualization.arrayToDataTable([
+        ['type', 'Percentage'],
+        ['Perfect',     data_taxon.ratio_perfect],
+        ['Multi',      data_taxon.ratio_multi],
+        ['Semi',  data_taxon.ratio_semi],
+        ['None', data_taxon.ratio_none]
+        ]);
+
+
+      var options = {
+        title: 'Percentage of matches at ' + data_taxon.taxon,
+        pieHole: 0.2,
+
+      };
+
+      var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
+      function selectHandler() {
+        var selectedItem = chart.getSelection()[0];
+        if (selectedItem) {
+          var topping = data.getValue(selectedItem.row, 0);
+          change_data(topping,filename);
+
+
+        }
+      }
+      google.visualization.events.addListener(chart, 'select', selectHandler);
+      chart.draw(data, options);
+      var config1 = liquidFillGaugeDefaultSettings();
+    config1.circleColor = "#FF7777";
+    config1.textColor = "#FF4444";
+    config1.waveTextColor = "#FFAAAA";
+    config1.waveColor = "#FFDDDD";
+    config1.circleThickness = 0.2;
+    config1.textVertPosition = 0.2;
+    config1.waveAnimateTime = 5000;
+    config1.waveHeight = 0.30;
+    config1.waveAnimate = true;
+    config1.waveOffset = 0.25;
+    config1.displayPercent = false;
+    loadLiquidFillGauge("fillgauge2", data_taxon.ratio_perfect, config1);
+
+            });
+
+    }
+  </script>
+
+<script type="text/javascript">
+    //google.load("visualization", "1", {packages:["table"]});
+
+
+    function change_data(topping,filename){
+      var filename;
+
+      $.getJSON(filename, function(data) {
+
+        var separater ='* ';
+        var newdata = new google.visualization.DataTable();
+        newdata.addRows(data.tinder[topping].length);
+        newdata.addColumn('string', 'Type');
+        newdata.addColumn('string', 'bottom');
+        newdata.addColumn('string', 'cutting');
+        $.each(data.tinder[topping], function(i,v) {
+
+        var genesb=separater;
+        for (var e in v.family['bottom']) {
+            for (var g in v.family['bottom'][e]){
+          genesb=genesb+v.family['bottom'][e][g]+'\n'
+          }
+          genesb=genesb+ separater;
+          }
+      var genesc=separater;
+        for (var e in v.family['cutting']) {
+          for (var g in v.family['cutting'][e]){
+          genesc=genesc+v.family['cutting'][e][g]+'\n'
+          }
+          genesc=genesc+ separater;
+      }
+        newdata.setValue(i, 0, v.result);
+        newdata.setValue(i, 1, genesb);
+        newdata.setValue(i, 2, genesc);
+
+       });
+       var StyleRows = {'headerRow': 'header_table',
+       tableRow: 'StyleRows'} ;
+
+        var table = new google.visualization.Table(document.getElementById('table_div'));
+        table.draw(newdata, {showRowNumber: false,alternatingRowStyle: false, cssClassNames: StyleRows,});
+
+      });
+
+    }
+  </script>
+
+<script type="text/javascript">
+function change_taxon_info(filename){
+            $.getJSON(filename, function(data) {
+            var nm = document.getElementById('total_match');
+            nm.innerHTML = data.number_match;
+            var ratio_perfect_less_none = data.number_perfect/(data.number_match - data.number_none)*100;
+
+            var nm = document.getElementById('number_perfect');
+            nm.innerHTML = data.number_perfect;
+            nm.innerHTML = nm.innerHTML + '  <span class="badge">'+data.ratio_perfect.toFixed(2) +'%</span>';
+            nm.innerHTML = nm.innerHTML + '  <span class="badge">'+ratio_perfect_less_none.toFixed(2) +'% ( less "None matches" )</span>';
+            nm.onclick=function(){change_data('Perfect')};
+
+            var nm = document.getElementById('number_multi');
+            nm.innerHTML = data.number_multi;
+            nm.innerHTML = nm.innerHTML + '  <span class="badge">'+data.ratio_multi.toFixed(2) +'%</span>';
+            nm.onclick=function(){change_data('Multi')};
+
+            var nm = document.getElementById('number_none');
+            nm.innerHTML = data.number_none;
+            nm.innerHTML = nm.innerHTML + '  <span class="badge">'+data.ratio_none.toFixed(2) +'%</span>';
+            nm.onclick=function(){change_data('None')};
+
+            var nm = document.getElementById('number_semi');
+            nm.innerHTML = data.number_semi;
+            nm.innerHTML = nm.innerHTML + '  <span class="badge">'+data.ratio_semi.toFixed(2) +'%</span>';
+            nm.onclick=function(){change_data('Semi')};
+
+            var nm = document.getElementById('taxon');
+            nm.innerHTML = data.taxon;
+
+
+
+
+             });
+}
+
+        </script>
+
+<script type="text/javascript">
+    $.getJSON('lineage.json', function(data) {
+        for (var s in data.taxon){
+        createbutton(s, data.taxon[s]);
+        }
+    });
+    var taxon_selected;
+    function createbutton(name, percent){
+
+            var bntgroup = document.createElement("div");
+            bntgroup.role = "group";
+            bntgroup.className = "btn-group";
+
+            var element = document.createElement("button");
+            element.type = "button";
+            element.className = "btn btn-success";
+            element.value = name;
+            element.innerHTML= name +  ' <span class="badge">' +percent+'% </span> ';
+            element.onclick = function() { // Note this is a function
+                drawChartdonut(element.value+'.json');
+                change_taxon_info(element.value+'.json');
+                taxon_selected = element.value;
+                };
+
+                parent = document.getElementById("specie_cloud");
+                bntgroup.appendChild(element);
+            parent.appendChild(bntgroup);
+
+    }
+
+  </script>
+
+<script type="text/javascript">
+
+/*
+            var v = document.getElementById('bout');
+            v.onclick=function(){
+            var table = document.getElementById('table_div');
+            table.remove();
+            var e = document.getElementById('table_div_parent');
+            var para = document.createElement("p");
+            para.id = 'table_div';
+            para.style.height= 380;
+            e.appendChild(para);
+            };
+
+            var sb = document.getElementById('searchbutton');
+            var si = document.getElementById('searchinput');
+            sb.onclick=function(){
+            $.getJSON('NoneMatche_' + taxon_selected+'_None.json', function(data) {
+            var type;
+            var found = 'false';
+            var gene;
+            for (var gb in data['bottom']){
+                if (data['bottom'][gb]["id"] === si.value){
+                    gene = data['bottom'][gb];
+                    type = 'bottom';
+                    found = 'true';
+                    }
+            }
+            for (var gc in data['cutting']){
+                if (data['cutting'][gc]["id"] === si.value){
+                    gene = data['cutting'][gc];
+                    type = 'cutting';
+                    found = 'true';
+                    }
+            }
+            if (found === 'true'){
+            var nm = document.getElementById('gene_id');
+            nm.innerHTML = gene.id + '  <span class="badge">'+ type +'</span>';
+
+            var f = document.getElementById('adidata');
+
+            if (gene.adidata === 'found'){f.innerHTML = '<div class="alert alert-success" role="alert">' + gene.adidata + '</div>';}
+            else{f.innerHTML = '<div class="alert alert-danger" role="alert">' + gene.adidata + '</div>';}
+
+            var g = document.getElementById('mydata');
+            if (gene.amydata === 'found'){g.innerHTML = '<div class="alert alert-success" role="alert">' + gene.amydata + '</div>';}
+            else{g.innerHTML = '<div class="alert alert-danger" role="alert">' + gene.amydata + '</div>';}
+
+
+
+            var h = document.getElementById('FA_data');
+            if (gene.aFAdata === 'found'){h.innerHTML = '<div class="alert alert-success" role="alert">' + gene.aFAdata + '</div>';}
+            else{h.innerHTML = '<div class="alert alert-danger" role="alert">' + gene.aFAdata + '</div>';}
+            }
+
+
+            });
+            };
+            */
+
+</script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
