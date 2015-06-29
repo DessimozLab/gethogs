@@ -10,18 +10,7 @@ import os
 taxons=["Homininae","Murinae"]
 
 
-def write_output_FA_into_file(fn, taxon_arg, taxon):
-    cmd = ["../family-analyzer/bin/familyanalyzer", "--xreftag", "omaId", pathfile_cutting, taxon]
-    for arg in taxon_arg:
-        cmd.append(arg)
-    print(cmd)
-    p = subprocess.Popen(['../family-analyzer/bin/familyanalyzer', '--xreftag', 'omaId', '../Result/OMA_cutting_0/OMA_HOGS_with_cutparam_0_oid.orthoxml', 'Murinae', 'MOUSE', 'RATNO'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
-    out, err = p.communicate()
-    print("***", out)
-    with open(pathfolder_output + fn,"w+") as f:
-        for line in out:
-            f.write(str(line))
-        f.close()
+
 
 def main_pipeline_FA(cut):
     global cutting_param
@@ -36,6 +25,11 @@ def main_pipeline_FA(cut):
             os.system("cd ../family-analyzer; bin/familyanalyzer --xreftag omaId "+ pathfile_cutting +" "+ taxon +" HUMAN PANTR >"  +pathfolder_output+ "Homininae_HP.txt" )
         elif taxon == "Murinae":
             os.system("cd ../family-analyzer; bin/familyanalyzer --xreftag omaId "+ pathfile_cutting +" "+ taxon +" MOUSE RATNO >"  +pathfolder_output+ "Murinae.txt" )
+
+
+
+
+        '''
         elif taxon == "Euarchontoglires":
             write_output_FA_into_file("Euarchontoglires.txt", ["HUMAN", "PANTR", "GORGO", "MOUSE", "RATNO"], taxon)
             write_output_FA_into_file("Euarchontoglires_GHP.txt", ["HUMAN", "PANTR", "GORGO"], taxon)
@@ -47,4 +41,4 @@ def main_pipeline_FA(cut):
             write_output_FA_into_file("Boreoeutherias_HP.txt", ["HUMAN", "PANTR"], taxon)
             write_output_FA_into_file("Boreoeutherias_MR.txt", ["MOUSE", "RATNO"], taxon)
 
-
+'''
