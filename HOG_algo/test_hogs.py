@@ -15,17 +15,16 @@ class HOG_Integration_Test(unittest.TestCase):
 
 
 class HOG_Integration_Test_Tiny(unittest.TestCase):
+    settings = None
     def test_hogs_tiny(self):
-        classes.reset_uniqueId()
-        classes.Settings.xml_name_param = "OMA_HOGS_bottom_"+ str(classes.Settings.param_merge) +'_tiny.xml'
-        main(classes.Settings.xml_name_param, 'tiny')
-        self.assertTrue(filecmp.cmp("../Result/" + classes.Settings.dir_name_param + "/" + classes.Settings.xml_name_param, '../Result/test_reference/OMA_HOG_bottom_tiny.xml'))
+        self.assertTrue(filecmp.cmp("../Result/" + self.settings.dir_name_param + "/" + self.settings.xml_name_param, '../Result/test_reference/OMA_HOG_bottom_tiny.xml'))
         gc.collect()
 
 
-def launch_test():
+def launch_test(set):
     #test_normal = unittest.TestLoader().loadTestsFromTestCase(HOG_Integration_Test)
     #unittest.TextTestRunner().run(test_normal)
 
+    HOG_Integration_Test_Tiny.settings = set
     test_tiny = unittest.TestLoader().loadTestsFromTestCase(HOG_Integration_Test_Tiny)
     unittest.TextTestRunner().run(test_tiny)

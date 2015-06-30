@@ -19,9 +19,11 @@ def reset_uniqueId():
 
 
 class Settings(object):
-  dir_name_param = None
-  xml_name_param = None
-  param_merge = None
+
+    def __init__(self):
+        self.dir_name_param = None
+        self.xml_name_param = None
+        self.param_merge = None
 
 class Genome(object):
     IdCount = 0
@@ -157,6 +159,7 @@ class Hierarchical_merger(object):
         self.set_tree(dataset)
         self.set_map(dataset)
         self.set_XML_manager()
+        self.settings = None
 
     def set_tree(self, dataset):
         if dataset == 'big':
@@ -214,14 +217,14 @@ class XML_manager(object):
                 no = log10(gene.speciesId)
                 genexml.set("protId", gene.species[0] + (4 - trunc(no)) * '0' + str(gene.speciesId))
 
-    def finish_xml_and_export(self):
+    def finish_xml_and_export(self, set):
         # Add each <species> into orthoXML
         treeOflife = self.treeOfLife
         self.fill_species_xml()
         self.replace_xml_hog_with_gene()
         utils.indent(treeOflife)
         tree = etree.ElementTree(treeOflife)
-        tree.write("../Result/" + Settings.dir_name_param + "/" + Settings.xml_name_param, xml_declaration=True, encoding='utf-8', method="xml")
+        tree.write("../Result/" + set.dir_name_param + "/" + set.xml_name_param, xml_declaration=True, encoding='utf-8', method="xml")
 
     def replace_xml_hog_with_gene(self):
         [utils.replacesolohog(b) for b in self.treeOfLife.iterfind(".//ortholGroup[@genehog]")]
@@ -345,7 +348,7 @@ class Merge_ancestral(object):
         start_time = time.time()
         self.search_CC()
         #filter CC with parameter
-        print(Settings.param_merge)
+        print(self.hierarchical_merger.settings.param_merge)
         self.CC_to_HOG()
         print("--- %s seconds ---" % (time.time() - start_time), '*** compute HOG ***')
 
