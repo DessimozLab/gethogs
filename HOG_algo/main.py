@@ -13,7 +13,7 @@ def main(set, dataset):
     start_time = time.time()
     ############################
 
-    dataset = dataset or "big"
+    dataset = dataset
     hierarchical_merger = Hierarchical_merger(dataset)
     hierarchical_merger.settings = set
     utils.draw_tree(hierarchical_merger.tree)

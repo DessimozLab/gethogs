@@ -7,6 +7,7 @@ import gc
 class HOG_Integration_Test(unittest.TestCase):
     settings = None
     dataset = None
+
     def test_hogs_tiny(self):
         self.assertTrue(filecmp.cmp("../Result/" + self.settings.dir_name_param + "/" + self.settings.xml_name_param, '../Result/test_reference/OMA_HOG_bottom_'+ self.dataset +'.xml'))
         gc.collect()

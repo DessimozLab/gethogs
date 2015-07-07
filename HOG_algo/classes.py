@@ -168,6 +168,9 @@ class Hierarchical_merger(object):
         elif dataset == 'tiny':
             tree = utils.read_tree('../Data/PERFECTDATA/tree.nwk', "newick")
             self.tree = tree
+        elif dataset == 'huge':
+            tree = utils.read_tree('../Data/20_genomes/tree.nwk', "newick")
+            self.tree = tree
         else:
             raise Exception('dataset unknown')
 
@@ -232,7 +235,7 @@ class XML_manager(object):
 
 class Filemap(object):
     def __init__(self, dataset):
-        self.prefix = None
+        self.dataset = dataset
         self.prefix_display = '../for_clement/'
         self.suffix = '.orth.txt'
         self.genome_pairs_data = []
@@ -261,21 +264,50 @@ class Filemap(object):
             prefix = '../Data/PERFECTDATA/'
             return Folder, genomeSize, prefix
 
+        elif dataset == 'huge':
+            Folder = None
+            self.suffix = ".txt"
+            genomeSize = {'HUMAN': 31589, 'APIME': 10378, 'BOVIN': 20310, 'CAEEL': 20800, 'CANFA': 20610, 'CHICK': 15504, 'DROME': 14506, 'GORGO': 21822, 'HORSE': 20405, 'MOUSE': 25724, 'NEUCR': 7569, 'PANTR': 18936, 'PENCW': 12770, 'PLAF7': 5503, 'RATNO': 22690, 'RHIOR': 16831, 'SCHPO': 5087, 'TETNG': 20020, 'XENTR': 19291, 'YEAST': 6352}
+            prefix = '../Data/20_genomes/PairwiseOrthologs/'
+            return Folder, genomeSize, prefix
+
     def genome_order(self, genome1, genome2):
         if genome2.species[0] not in self.Folder[genome1.species[0]]:
             return genome2, genome1, True
         return genome1, genome2, False
 
+    def genome_order_same_folder(self, genome1, genome2,files ):
+        for f in files:
+            genome_first = f[0:5]
+            genome_second = f[6:-4]
+            if genome_first == genome1.species[0]:
+                if genome_second == genome2.species[0]:
+                    return genome1, genome2, False
+            if genome_first == genome2.species[0]:
+                if genome_second == genome1.species[0]:
+                    return genome2, genome1, True
+        return
+
+
+
 
     def loadfile(self, genome1, genome2):
-        genome1, genome2, inverted = self.genome_order(genome1, genome2)
+        if self.dataset == "huge":
+            files = utils.get_list_files('../Data/20_genomes/PairwiseOrthologs')
+            genome1, genome2, inverted = self.genome_order_same_folder(genome1, genome2, files)
+            filename = self.prefix + genome1.species[0] + '-' + genome2.species[0] + self.suffix
+            usec = (0, 1, 4)
+        else:
+            genome1, genome2, inverted = self.genome_order(genome1, genome2)
+            filename = self.prefix + genome1.species[0] + '/' + genome2.species[0] + self.suffix
+            usec = (0, 1, 3)
         for pairdata in self.genome_pairs_data:
             if genome1.species[0] in pairdata['genome'] and genome2.species[0] in pairdata['genome']:
                 print('file between', genome1.species[0], "and", genome2.species[0], 'already exist')
                 return pairdata['data']
-        filename = self.prefix + genome1.species[0] + '/' + genome2.species[0] + self.suffix
-        data = np.genfromtxt(filename, dtype=None, delimiter="", usecols=(0, 1, 2, 3),
-                             names=['gene1', 'gene2', 'score', 'type'])
+
+        data = np.genfromtxt(filename, dtype=None, comments="#", delimiter="", usecols=usec,
+                             names=['gene1', 'gene2', 'type'])
         pairs = {'data': data, 'genome': [genome1, genome2]}
         self.genome_pairs_data.append(pairs)
         return pairs['data'], inverted
@@ -360,8 +392,33 @@ class Merge_ancestral(object):
         self.updatesoloHOGs(positionHOG2, self.genome2)
         print("--- %s seconds ---" % (time.time() - start_time), '*** soloHOGs ***')
 
+
+
     def CC_to_HOG(self):
         for con in self.connectedComponents:
+
+            ###############
+            total_relations = 0
+            hog_genome_1 = {}
+            nbr_HOGS_genes_genome1 = 0
+            nbr_HOGS_genes_genome2 = 0
+            hog_genome_2 = {}
+            for e in con:
+                if e >= self.size[1]:
+                    hog_genome_1[e - self.size[1]]= self.genome1.HOGS[e - self.size[1]]
+                else:
+                    hog_genome_2[e]= self.genome2.HOGS[e]
+            for key1,value1 in hog_genome_1.items():
+                nbr_HOGS_genes_genome1 = nbr_HOGS_genes_genome1 + len(value1.genes)
+            for key2,value2 in hog_genome_2.items():
+                nbr_HOGS_genes_genome2 = nbr_HOGS_genes_genome2 + len(value2.genes)
+            for key1,value1 in hog_genome_1.items():
+                for key2,value2 in hog_genome_2.items():
+                    score_matrix = self.matrix[self.genome1.HOGS.index(value1)][self.genome2.HOGS.index(value2)]
+                    total_relations = total_relations + score_matrix
+            maximum_relations = nbr_HOGS_genes_genome1 * nbr_HOGS_genes_genome2
+            ###############
+
             newHOG = HOG()
             anchogxml = etree.SubElement(self.hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
             newHOG.xml = anchogxml
