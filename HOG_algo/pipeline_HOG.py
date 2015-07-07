@@ -44,7 +44,7 @@ def launch_job(param, dataset,FA):
     elif dataset == 'huge':
         set.xml_name_param = "OMA_HOGS_bottom_"+ str(set.param_merge) +'_huge.xml'
     ma.main(set, dataset)
-    launch_test(set,dataset)
+    #launch_test(set,dataset)
     if FA == "False":
         return
     pipeline_FA_OMA_bottom.main_pipeline_FA(set)
