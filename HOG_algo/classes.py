@@ -396,28 +396,7 @@ class Merge_ancestral(object):
 
     def CC_to_HOG(self):
         for con in self.connectedComponents:
-
-            ###############
-            total_relations = 0
-            hog_genome_1 = {}
-            nbr_HOGS_genes_genome1 = 0
-            nbr_HOGS_genes_genome2 = 0
-            hog_genome_2 = {}
-            for e in con:
-                if e >= self.size[1]:
-                    hog_genome_1[e - self.size[1]]= self.genome1.HOGS[e - self.size[1]]
-                else:
-                    hog_genome_2[e]= self.genome2.HOGS[e]
-            for key1,value1 in hog_genome_1.items():
-                nbr_HOGS_genes_genome1 = nbr_HOGS_genes_genome1 + len(value1.genes)
-            for key2,value2 in hog_genome_2.items():
-                nbr_HOGS_genes_genome2 = nbr_HOGS_genes_genome2 + len(value2.genes)
-            for key1,value1 in hog_genome_1.items():
-                for key2,value2 in hog_genome_2.items():
-                    score_matrix = self.matrix[self.genome1.HOGS.index(value1)][self.genome2.HOGS.index(value2)]
-                    total_relations = total_relations + score_matrix
-            maximum_relations = nbr_HOGS_genes_genome1 * nbr_HOGS_genes_genome2
-            ###############
+            print(utils.compute_score_merging(con,self))
 
             newHOG = HOG()
             anchogxml = etree.SubElement(self.hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
@@ -459,6 +438,7 @@ class Merge_ancestral(object):
     def updatesoloHOGs(self, positions, genome):
         for positionHOGinmatrix in positions:
             oldHog = genome.HOGS[positionHOGinmatrix]
+            print("solo", oldHog)
             oldHog.updateGenometoAllGenes(self.newgenome)
             self.newHOGs.append(oldHog)
 
