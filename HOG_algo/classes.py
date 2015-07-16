@@ -398,6 +398,7 @@ class Merge_ancestral(object):
     def CC_to_HOG(self):
         for con in self.connectedComponents:
             score = utils.compute_score_merging(con,self)
+            print(score)
             if score >= self.hierarchical_merger.settings.param_merge:
                 print("DOTHEMERGE")
                 newHOG = HOG()
