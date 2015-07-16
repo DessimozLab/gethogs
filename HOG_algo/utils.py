@@ -75,28 +75,29 @@ def indent(elem, level=0):
 
 
 def compute_score_merging(con,self):
-    total_relations = 0
-    hog_genome_1 = {}
-    nbr_HOGS_genes_genome1 = 0
-    nbr_HOGS_genes_genome2 = 0
-    hog_genome_2 = {}
-    for e in con:
-        if e >= self.size[1]:
-            hog_genome_1[e - self.size[1]]= self.genome1.HOGS[e - self.size[1]]
-        else:
-            hog_genome_2[e]= self.genome2.HOGS[e]
-    for key1,value1 in hog_genome_1.items():
-        nbr_HOGS_genes_genome1 = nbr_HOGS_genes_genome1 + len(value1.genes)
-    for key2,value2 in hog_genome_2.items():
-        nbr_HOGS_genes_genome2 = nbr_HOGS_genes_genome2 + len(value2.genes)
-    for key1,value1 in hog_genome_1.items():
+    if self.hierarchical_merger.settings.method_merge == "A":
+        total_relations = 0
+        hog_genome_1 = {}
+        nbr_HOGS_genes_genome1 = 0
+        nbr_HOGS_genes_genome2 = 0
+        hog_genome_2 = {}
+        for e in con:
+            if e >= self.size[1]:
+                hog_genome_1[e - self.size[1]]= self.genome1.HOGS[e - self.size[1]]
+            else:
+                hog_genome_2[e]= self.genome2.HOGS[e]
+        for key1,value1 in hog_genome_1.items():
+            nbr_HOGS_genes_genome1 = nbr_HOGS_genes_genome1 + len(value1.genes)
         for key2,value2 in hog_genome_2.items():
-            score_matrix = self.matrix[self.genome1.HOGS.index(value1)][self.genome2.HOGS.index(value2)]
-            total_relations = total_relations + score_matrix
-    maximum_relations = nbr_HOGS_genes_genome1 * nbr_HOGS_genes_genome2
-    score = float(total_relations*100)/float(maximum_relations*100)
-    score = score * 100
-    return score
+            nbr_HOGS_genes_genome2 = nbr_HOGS_genes_genome2 + len(value2.genes)
+        for key1,value1 in hog_genome_1.items():
+            for key2,value2 in hog_genome_2.items():
+                score_matrix = self.matrix[self.genome1.HOGS.index(value1)][self.genome2.HOGS.index(value2)]
+                total_relations = total_relations + score_matrix
+        maximum_relations = nbr_HOGS_genes_genome1 * nbr_HOGS_genes_genome2
+        score = float(total_relations*100)/float(maximum_relations*100)
+        score = score * 100
+        return score
 
 
 

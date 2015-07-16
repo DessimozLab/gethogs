@@ -24,6 +24,7 @@ class Settings(object):
         self.dir_name_param = None
         self.xml_name_param = None
         self.param_merge = None
+        self.method_merge = ""
 
 class Genome(object):
     IdCount = 0
@@ -227,7 +228,7 @@ class XML_manager(object):
         self.replace_xml_hog_with_gene()
         utils.indent(treeOflife)
         tree = etree.ElementTree(treeOflife)
-        tree.write("../Result/" + set.dir_name_param + "/" + set.xml_name_param, xml_declaration=True, encoding='utf-8', method="xml")
+        tree.write(set.prefix_path + set.dir_name_param + "/" + set.xml_name_param, xml_declaration=True, encoding='utf-8', method="xml")
 
     def replace_xml_hog_with_gene(self):
         [utils.replacesolohog(b) for b in self.treeOfLife.iterfind(".//ortholGroup[@genehog]")]
@@ -396,44 +397,76 @@ class Merge_ancestral(object):
 
     def CC_to_HOG(self):
         for con in self.connectedComponents:
-            print(utils.compute_score_merging(con,self))
-
-            newHOG = HOG()
-            anchogxml = etree.SubElement(self.hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
-            newHOG.xml = anchogxml
-            taxon = etree.SubElement(anchogxml, "property")
-            taxon.set("name", 'TaxRange')
-            strtaxon = ''
-            for species in self.genome1.species:
-                strtaxon = strtaxon + str(species)
-            for species in self.genome2.species:
-                strtaxon = strtaxon + str(species)
-            taxon.set("value", strtaxon)
-            cnt_in_genome1 = sum(map(lambda e: e >= self.size[1], con))
-            cnt_in_genome2 = len(con) - cnt_in_genome1
-            if cnt_in_genome1 > 1:
-                paraxml = etree.SubElement(anchogxml, "paralogGroup")
-                parent_groupElement1 = paraxml
-            else:
-                parent_groupElement1 = anchogxml
-            if cnt_in_genome2 > 1:
-                paraxml = etree.SubElement(anchogxml, "paralogGroup")
-                parent_groupElement2 = paraxml
-            else:
-                parent_groupElement2 = anchogxml
-            for e in con:
-                if e >= self.size[1]:
-                    newHOG.mergeHOGwith(self.genome1.HOGS[e - self.size[1]])
-                    hogxml = self.genome1.HOGS[e - self.size[1]].xml
-                    parent_groupElement1.append(hogxml)
-
+            score = utils.compute_score_merging(con,self)
+            if score >= self.hierarchical_merger.settings.param_merge:
+                print("DOTHEMERGE")
+                newHOG = HOG()
+                anchogxml = etree.SubElement(self.hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
+                newHOG.xml = anchogxml
+                taxon = etree.SubElement(anchogxml, "property")
+                taxon.set("name", 'TaxRange')
+                strtaxon = ''
+                for species in self.genome1.species:
+                    strtaxon = strtaxon + str(species)
+                for species in self.genome2.species:
+                    strtaxon = strtaxon + str(species)
+                taxon.set("value", strtaxon)
+                cnt_in_genome1 = sum(map(lambda e: e >= self.size[1], con))
+                cnt_in_genome2 = len(con) - cnt_in_genome1
+                if cnt_in_genome1 > 1:
+                    paraxml = etree.SubElement(anchogxml, "paralogGroup")
+                    parent_groupElement1 = paraxml
                 else:
-                    newHOG.mergeHOGwith(self.genome2.HOGS[e])
-                    hogxml = self.genome2.HOGS[e].xml
-                    parent_groupElement2.append(hogxml)
+                    parent_groupElement1 = anchogxml
+                if cnt_in_genome2 > 1:
+                    paraxml = etree.SubElement(anchogxml, "paralogGroup")
+                    parent_groupElement2 = paraxml
+                else:
+                    parent_groupElement2 = anchogxml
+                for e in con:
+                    if e >= self.size[1]:
+                        newHOG.mergeHOGwith(self.genome1.HOGS[e - self.size[1]])
+                        hogxml = self.genome1.HOGS[e - self.size[1]].xml
+                        parent_groupElement1.append(hogxml)
 
-            newHOG.updateGenometoAllGenes(self.newgenome)
-            self.newHOGs.append(newHOG)
+                    else:
+                        newHOG.mergeHOGwith(self.genome2.HOGS[e])
+                        hogxml = self.genome2.HOGS[e].xml
+                        parent_groupElement2.append(hogxml)
+
+                newHOG.updateGenometoAllGenes(self.newgenome)
+                self.newHOGs.append(newHOG)
+            else:
+                print("DONTMERGE")
+
+                strtaxon = ''
+                for species in self.genome1.species:
+                    strtaxon = strtaxon + str(species)
+                for species in self.genome2.species:
+                    strtaxon = strtaxon + str(species)
+
+                for e in con:
+                    newHOG = HOG()
+                    anchogxml = etree.SubElement(self.hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
+                    newHOG.xml = anchogxml
+                    taxon = etree.SubElement(anchogxml, "property")
+                    taxon.set("name", 'TaxRange')
+                    taxon.set("value", strtaxon)
+                    if e >= self.size[1]:
+                        newHOG.mergeHOGwith(self.genome1.HOGS[e - self.size[1]])
+                        hogxml = self.genome1.HOGS[e - self.size[1]].xml
+                        anchogxml.append(hogxml)
+                        newHOG.updateGenometoAllGenes(self.newgenome)
+                        self.newHOGs.append(newHOG)
+
+                    else:
+                        newHOG.mergeHOGwith(self.genome2.HOGS[e])
+                        hogxml = self.genome2.HOGS[e].xml
+                        anchogxml.append(hogxml)
+                        newHOG.updateGenometoAllGenes(self.newgenome)
+                        self.newHOGs.append(newHOG)
+
+
 
     def updatesoloHOGs(self, positions, genome):
         for positionHOGinmatrix in positions:
