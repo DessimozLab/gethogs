@@ -11,7 +11,6 @@ import main as ma
 
 
 def pipeline(array_param, cluster,dataset,FA,method_merge):
-    print(dataset)
     for param in array_param:
         if cluster:
             arg= str(param)+',"'+str(dataset)+'","'+str(FA)+'"'+',"'+str(method_merge)+'"'
@@ -32,13 +31,22 @@ def launch_job(param, dataset,FA,method_merge):
     set.dir_name_param = "OMA_bottom_" + str(param)
     set.param_merge = param
     set.method_merge = method_merge
-    print(set.dir_name_param, set.prefix_path)
     if not os.path.isdir( set.prefix_path + "/"):
         os.mkdir(set.prefix_path + "/")
         if not os.path.isdir( set.prefix_path + set.dir_name_param + "/"):
             os.mkdir(set.prefix_path + set.dir_name_param + "/")
             os.mkdir(set.prefix_path + set.dir_name_param + "/FA")
             os.mkdir(set.prefix_path + set.dir_name_param + "/MOBA")
+    else:
+        if not os.path.isdir( set.prefix_path + set.dir_name_param + "/"):
+            os.mkdir(set.prefix_path + set.dir_name_param + "/")
+            os.mkdir(set.prefix_path + set.dir_name_param + "/FA")
+            os.mkdir(set.prefix_path + set.dir_name_param + "/MOBA")
+
+        else:
+            print("\n This parameter have already been run, results gonna be overwrite\n")
+
+
     classes.reset_uniqueId()
     if dataset == 'big':
         set.xml_name_param = "OMA_HOGS_bottom_"+ str(set.param_merge) +'_big.xml'
@@ -46,6 +54,8 @@ def launch_job(param, dataset,FA,method_merge):
         set.xml_name_param = "OMA_HOGS_bottom_"+ str(set.param_merge) +'_tiny.xml'
     elif dataset == 'huge':
         set.xml_name_param = "OMA_HOGS_bottom_"+ str(set.param_merge) +'_huge.xml'
+
+    print("\n \n\n \n\n \n WARTHOGs launched on dataset " + str(dataset) + " with the merging parameter "+ str(param)+ ". The scoring method used to merged HOGs is "+ str(method_merge)+ "\n \n")
     ma.main(set, dataset)
     #launch_test(set,dataset)
     if FA == "False":

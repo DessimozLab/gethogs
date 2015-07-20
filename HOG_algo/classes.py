@@ -80,7 +80,7 @@ class ActualGenome(Genome):
         return None
 
     def create_genome_HOG_and_Gene(self, number, groupsxml):
-        print('creation genome:', self.species)
+        print('-> Genome '+ self.species[0] + " created. \n")
         for i in range(1, number + 1):
             hog = HOG()
             gene = Gene(i, self.species)
@@ -110,7 +110,7 @@ class AncestralGenome(Genome):
         start_time = time.time()
         e = Merge_ancestral(self, self.children[0], self.children[1], hierarchical_merger)
         self.HOGS = e.newHOGs
-        print("--- %s seconds ---" % (time.time() - start_time), 'MERGING', self.children[0], self.children[1])
+        print("\t - %s seconds " % (time.time() - start_time) + str(self.children[0]) + "&" + str(self.children[1]) +' MERGED. \n' )
 
 
 class HOG(object):
@@ -371,6 +371,7 @@ class Merge_ancestral(object):
         self.do_the_merge()
 
     def do_the_merge(self):
+        print("-- Merging of " + str(self.genome1) +" "+ str(self.genome2))
         # Find Orthologous relations between all genes of all species
         self.find_ortho_relations()
 
@@ -380,10 +381,11 @@ class Merge_ancestral(object):
         # Cluster HOGs of a same connected component and merge them in a new HOG
         start_time = time.time()
         self.search_CC()
+        print("\t * %s seconds --" % (time.time() - start_time)+ ' Searching CCs')
         #filter CC with parameter
-        print(self.hierarchical_merger.settings.param_merge)
+        start_time = time.time()
         self.CC_to_HOG()
-        print("--- %s seconds ---" % (time.time() - start_time), '*** compute HOG ***')
+        print("\t * %s seconds --" % (time.time() - start_time)+ ' Merging HOGs')
 
         # Update solo Hog to the new taxonomic range
         start_time = time.time()
@@ -391,16 +393,14 @@ class Merge_ancestral(object):
         positionHOG2 = set(self.lenrow) - set(np.asarray(self.genome2Computed))
         self.updatesoloHOGs(positionHOG1, self.genome1)
         self.updatesoloHOGs(positionHOG2, self.genome2)
-        print("--- %s seconds ---" % (time.time() - start_time), '*** soloHOGs ***')
+        print("\t * %s seconds --" % (time.time() - start_time) + ' Updating soloHOGs.')
 
 
 
     def CC_to_HOG(self):
         for con in self.connectedComponents:
             score = utils.compute_score_merging(con,self)
-            print(score)
             if score >= self.hierarchical_merger.settings.param_merge:
-                print("DOTHEMERGE")
                 newHOG = HOG()
                 anchogxml = etree.SubElement(self.hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
                 newHOG.xml = anchogxml
@@ -412,6 +412,7 @@ class Merge_ancestral(object):
                 for species in self.genome2.species:
                     strtaxon = strtaxon + str(species)
                 taxon.set("value", strtaxon)
+                taxon.set("score", str(score))
                 cnt_in_genome1 = sum(map(lambda e: e >= self.size[1], con))
                 cnt_in_genome2 = len(con) - cnt_in_genome1
                 if cnt_in_genome1 > 1:
@@ -438,8 +439,6 @@ class Merge_ancestral(object):
                 newHOG.updateGenometoAllGenes(self.newgenome)
                 self.newHOGs.append(newHOG)
             else:
-                print("DONTMERGE")
-
                 strtaxon = ''
                 for species in self.genome1.species:
                     strtaxon = strtaxon + str(species)
@@ -472,7 +471,6 @@ class Merge_ancestral(object):
     def updatesoloHOGs(self, positions, genome):
         for positionHOGinmatrix in positions:
             oldHog = genome.HOGS[positionHOGinmatrix]
-            print("solo", oldHog)
             oldHog.updateGenometoAllGenes(self.newgenome)
             self.newHOGs.append(oldHog)
 
@@ -489,7 +487,7 @@ class Merge_ancestral(object):
     def find_hogs_links(self):
         start_time = time.time()
         itemindex = np.where(self.matrix >= 1)
-        print("--- %s seconds ---" % (time.time() - start_time), '*** find HOG relations ***')
+        print("\t * %s seconds -- " % (time.time() - start_time)+ "Finding HOGs relations.")
 
         itemindex = list(itemindex)
         self.genome1_matrice_index = itemindex[0]
@@ -519,8 +517,7 @@ class Merge_ancestral(object):
         except TypeError:
             raw = data
             self.find_hog_fill_matrix_cell(inverted, actual_genome1, actual_genome2, raw)
-        print("--- %s seconds ---" % (time.time() - start_time), '*** align two species ***', actual_genome1,
-              actual_genome2)
+        print("\t * %s seconds -- " % (time.time() - start_time)+ str(actual_genome1)+ ' & '+ str(actual_genome2) + " aligned.")
 
     def find_hog_fill_matrix_cell(self, inverted, actual_genome1, actual_genome2, raw):
         if inverted:
