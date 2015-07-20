@@ -375,14 +375,20 @@ class Merge_ancestral(object):
         # Find Orthologous relations between all genes of all species
         self.find_ortho_relations()
 
+        # Find all HOGs relations in the matrix, replace with 1 the significant relations and with 0 for the unrevelant
+        start_time = time.time()
+        self.find_hogs_links(1)
+        self.clean_matrix(self.hierarchical_merger.settings.param_merge)
+        print("\t * %s seconds --" % (time.time() - start_time)+ ' Cleaning the matrix')
+
         # Find all HOGs relations in the matrix
-        self.find_hogs_links()
+        self.find_hogs_links(1)
 
         # Cluster HOGs of a same connected component and merge them in a new HOG
         start_time = time.time()
         self.search_CC()
         print("\t * %s seconds --" % (time.time() - start_time)+ ' Searching CCs')
-        #filter CC with parameter
+
         start_time = time.time()
         self.CC_to_HOG()
         print("\t * %s seconds --" % (time.time() - start_time)+ ' Merging HOGs')
@@ -397,74 +403,46 @@ class Merge_ancestral(object):
 
 
 
+
+
     def CC_to_HOG(self):
         for con in self.connectedComponents:
-            score = utils.compute_score_merging(con,self)
-            if score >= self.hierarchical_merger.settings.param_merge:
-                newHOG = HOG()
-                anchogxml = etree.SubElement(self.hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
-                newHOG.xml = anchogxml
-                taxon = etree.SubElement(anchogxml, "property")
-                taxon.set("name", 'TaxRange')
-                strtaxon = ''
-                for species in self.genome1.species:
-                    strtaxon = strtaxon + str(species)
-                for species in self.genome2.species:
-                    strtaxon = strtaxon + str(species)
-                taxon.set("value", strtaxon)
-                taxon.set("score", str(score))
-                cnt_in_genome1 = sum(map(lambda e: e >= self.size[1], con))
-                cnt_in_genome2 = len(con) - cnt_in_genome1
-                if cnt_in_genome1 > 1:
-                    paraxml = etree.SubElement(anchogxml, "paralogGroup")
-                    parent_groupElement1 = paraxml
-                else:
-                    parent_groupElement1 = anchogxml
-                if cnt_in_genome2 > 1:
-                    paraxml = etree.SubElement(anchogxml, "paralogGroup")
-                    parent_groupElement2 = paraxml
-                else:
-                    parent_groupElement2 = anchogxml
-                for e in con:
-                    if e >= self.size[1]:
-                        newHOG.mergeHOGwith(self.genome1.HOGS[e - self.size[1]])
-                        hogxml = self.genome1.HOGS[e - self.size[1]].xml
-                        parent_groupElement1.append(hogxml)
-
-                    else:
-                        newHOG.mergeHOGwith(self.genome2.HOGS[e])
-                        hogxml = self.genome2.HOGS[e].xml
-                        parent_groupElement2.append(hogxml)
-
-                newHOG.updateGenometoAllGenes(self.newgenome)
-                self.newHOGs.append(newHOG)
+            newHOG = HOG()
+            anchogxml = etree.SubElement(self.hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
+            newHOG.xml = anchogxml
+            taxon = etree.SubElement(anchogxml, "property")
+            taxon.set("name", 'TaxRange')
+            strtaxon = ''
+            for species in self.genome1.species:
+                strtaxon = strtaxon + str(species)
+            for species in self.genome2.species:
+                strtaxon = strtaxon + str(species)
+            taxon.set("value", strtaxon)
+            cnt_in_genome1 = sum(map(lambda e: e >= self.size[1], con))
+            cnt_in_genome2 = len(con) - cnt_in_genome1
+            if cnt_in_genome1 > 1:
+                paraxml = etree.SubElement(anchogxml, "paralogGroup")
+                parent_groupElement1 = paraxml
             else:
-                strtaxon = ''
-                for species in self.genome1.species:
-                    strtaxon = strtaxon + str(species)
-                for species in self.genome2.species:
-                    strtaxon = strtaxon + str(species)
+                parent_groupElement1 = anchogxml
+            if cnt_in_genome2 > 1:
+                paraxml = etree.SubElement(anchogxml, "paralogGroup")
+                parent_groupElement2 = paraxml
+            else:
+                parent_groupElement2 = anchogxml
+            for e in con:
+                if e >= self.size[1]:
+                    newHOG.mergeHOGwith(self.genome1.HOGS[e - self.size[1]])
+                    hogxml = self.genome1.HOGS[e - self.size[1]].xml
+                    parent_groupElement1.append(hogxml)
 
-                for e in con:
-                    newHOG = HOG()
-                    anchogxml = etree.SubElement(self.hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
-                    newHOG.xml = anchogxml
-                    taxon = etree.SubElement(anchogxml, "property")
-                    taxon.set("name", 'TaxRange')
-                    taxon.set("value", strtaxon)
-                    if e >= self.size[1]:
-                        newHOG.mergeHOGwith(self.genome1.HOGS[e - self.size[1]])
-                        hogxml = self.genome1.HOGS[e - self.size[1]].xml
-                        anchogxml.append(hogxml)
-                        newHOG.updateGenometoAllGenes(self.newgenome)
-                        self.newHOGs.append(newHOG)
+                else:
+                    newHOG.mergeHOGwith(self.genome2.HOGS[e])
+                    hogxml = self.genome2.HOGS[e].xml
+                    parent_groupElement2.append(hogxml)
 
-                    else:
-                        newHOG.mergeHOGwith(self.genome2.HOGS[e])
-                        hogxml = self.genome2.HOGS[e].xml
-                        anchogxml.append(hogxml)
-                        newHOG.updateGenometoAllGenes(self.newgenome)
-                        self.newHOGs.append(newHOG)
+            newHOG.updateGenometoAllGenes(self.newgenome)
+            self.newHOGs.append(newHOG)
 
 
 
@@ -484,9 +462,9 @@ class Merge_ancestral(object):
         self.genome2Computed = sorted(set(self.genome2Computed))
         self.connectedComponents = connectedComponents.get_components()
 
-    def find_hogs_links(self):
+    def find_hogs_links(self,threshold):
         start_time = time.time()
-        itemindex = np.where(self.matrix >= 1)
+        itemindex = np.where(self.matrix >= threshold)
         print("\t * %s seconds -- " % (time.time() - start_time)+ "Finding HOGs relations.")
 
         itemindex = list(itemindex)
@@ -497,6 +475,16 @@ class Merge_ancestral(object):
         self.size = list(self.matrix.shape)
         self.lencol = np.arange(self.size[0])
         self.lenrow = np.arange(self.size[1])
+
+    def clean_matrix(self, threshold):
+        for i in range(len(self.genome1_matrice_index)):
+            hog_genome1 = self.genome1_matrice_index[i] + self.size[1]
+            hog_genome2 = self.genome2_matrice_index[i]
+            score = utils.compute_score_merging(self,hog_genome1,hog_genome2)
+            if score > threshold:
+                self.matrix[self.genome1_matrice_index[i]][self.genome2_matrice_index[i]] = 1
+            else:
+                self.matrix[self.genome1_matrice_index[i]][self.genome2_matrice_index[i]] = 0
 
     def find_ortho_relations(self):
         for i in self.genome1.species:
