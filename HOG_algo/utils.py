@@ -88,6 +88,14 @@ def compute_score_merging(self, hog1, hog2):
         score = score * 100
         return score
 
+def get_genomes_size(filepath):
+    data = np.genfromtxt(filepath, dtype=None, comments="#", delimiter="", usecols=(0,1))
+    genome_size = {}
+    for pairs in data:
+        genome_size[pairs[0]]=pairs[1]
+    return genome_size
+
+
 
 
 # UNUSED FUNCTION

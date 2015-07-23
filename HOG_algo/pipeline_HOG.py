@@ -54,6 +54,8 @@ def launch_job(param, dataset,FA,method_merge):
         set.xml_name_param = "OMA_HOGS_bottom_"+ str(set.param_merge) +'_tiny.xml'
     elif dataset == 'huge':
         set.xml_name_param = "OMA_HOGS_bottom_"+ str(set.param_merge) +'_huge.xml'
+    elif dataset == 'insane':
+        set.xml_name_param = "OMA_HOGS_bottom_"+ str(set.param_merge) +'_insane.xml'
 
     print("\n \n\n \n\n \n WARTHOGs launched on dataset " + str(dataset) + " with the merging parameter "+ str(param)+ ". The scoring method used to merged HOGs is "+ str(method_merge)+ "\n \n")
     ma.main(set, dataset)
@@ -81,7 +83,7 @@ def main(argv):
             '\nUsage: pipeline_HOG.py [options] -p [PARAMETER...] -d [DATASET] \n'
             '\nArguments: \n'
             '   -p  List of integers separated by ",", corresponding to parameters used for each pipeline-runs. \n'
-            '   -d  Dataset used for inferences, possibilities: "tiny", "big", "huge".  \n'
+            '   -d  Dataset used for inferences, possibilities: "tiny", "big", "huge", or "insane" if you dare motherfuckers.  \n'
             '   -m  Method used to score a score relevantness of merging two HOGS.  \n'
             '\nOptions: \n'
             '   -c  If specify, use bsub cmd to start a job in a LSF-cluster. Otherwise use bash python cmd. \n'
@@ -101,7 +103,7 @@ def main(argv):
         elif opt in ("-m"):
             method_merge = arg
         elif opt in ("-d"):
-            if arg != "tiny" and arg!= "big" and arg!= "huge" :
+            if arg != "tiny" and arg!= "big" and arg!= "huge" and arg!= "insane" :
                 print("wrong dataset")
                 sys.exit()
             dataset = arg

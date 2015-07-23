@@ -172,6 +172,11 @@ class Hierarchical_merger(object):
         elif dataset == 'huge':
             tree = utils.read_tree('../Data/20_genomes/tree.nwk', "newick")
             self.tree = tree
+
+        elif dataset == 'insane':
+            tree = utils.read_tree('../Data/66_genomes/tree.nwk', "newick")
+            self.tree = tree
+            pass
         else:
             raise Exception('dataset unknown')
 
@@ -272,6 +277,13 @@ class Filemap(object):
             prefix = '../Data/20_genomes/PairwiseOrthologs/'
             return Folder, genomeSize, prefix
 
+        elif dataset == 'insane':
+            Folder = None
+            self.suffix = ".txt"
+            genomeSize = utils.get_genomes_size('../Data/66_genomes/Nr_genes.txt')
+            prefix = '../Data/66_genomes/PairwiseOrthologs/'
+            return Folder, genomeSize, prefix
+
     def genome_order(self, genome1, genome2):
         if genome2.species[0] not in self.Folder[genome1.species[0]]:
             return genome2, genome1, True
@@ -298,6 +310,11 @@ class Filemap(object):
             genome1, genome2, inverted = self.genome_order_same_folder(genome1, genome2, files)
             filename = self.prefix + genome1.species[0] + '-' + genome2.species[0] + self.suffix
             usec = (0, 1, 4)
+        elif self.dataset == "insane":
+            files = utils.get_list_files('../Data/66_genomes/PairwiseOrthologs')
+            genome1, genome2, inverted = self.genome_order_same_folder(genome1, genome2, files)
+            filename = self.prefix + genome1.species[0] + '-' + genome2.species[0] + self.suffix
+            usec = (0, 1, 3)
         else:
             genome1, genome2, inverted = self.genome_order(genome1, genome2)
             filename = self.prefix + genome1.species[0] + '/' + genome2.species[0] + self.suffix
