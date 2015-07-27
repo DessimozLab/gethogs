@@ -92,7 +92,8 @@ def get_genomes_size(filepath):
     data = np.genfromtxt(filepath, dtype=None , delimiter="", usecols=(0,1))
     genome_size = {}
     for pairs in data:
-        genome_size[str(pairs[0])]=pairs[1]
+        genome = pairs[0].decode('ascii')
+        genome_size[genome]=pairs[1]
     print(genome_size)
     return genome_size
 
