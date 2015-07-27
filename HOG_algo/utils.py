@@ -90,10 +90,9 @@ def compute_score_merging(self, hog1, hog2):
 
 def get_genomes_size(filepath):
     data = np.genfromtxt(filepath, dtype=None , delimiter="", usecols=(0,1))
-    print(data)
     genome_size = {}
     for pairs in data:
-        genome = pairs[0].decode()
+        genome = pairs[0].decode('ascii')
         genome_size[genome]=pairs[1]
     print(genome_size)
     return genome_size
