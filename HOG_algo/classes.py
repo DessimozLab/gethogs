@@ -205,7 +205,6 @@ class XML_manager(object):
         self.groupsxml = etree.SubElement(self.treeOfLife, "groups")
 
     def fill_species_xml(self):
-
         hash_mapping = {}
         data = np.genfromtxt('../Data/66_genomes/IDmapping.txt', dtype=None , delimiter="", usecols=(0,1,2))
         for line in data:
@@ -215,10 +214,11 @@ class XML_manager(object):
             except KeyError:
                 hash_mapping[line[0]]=[[line[1],line[2]]]
 
+        for key, value in hash_mapping.items():
+            print(key)
+
         for species in sorted(ActualGenome.getinstances(), key=lambda x: x.species[0]):
-
             ID_mapping = hash_mapping[species.species[0]]
-
             actualgenomexml = etree.Element("species")
             self.treeOfLife.insert(0, actualgenomexml)
             actualgenomexml.set("name", species.species[0])
