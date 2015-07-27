@@ -1,3 +1,5 @@
+import re
+
 __author__ = 'traincm'
 
 import weakref
@@ -204,7 +206,18 @@ class XML_manager(object):
 
     def fill_species_xml(self):
 
+        hash_mapping = {}
+        data = np.genfromtxt('../Data/66_genomes/IDmapping.txt', dtype=None , delimiter="", usecols=(0,1,2))
+        for line in data:
+            try :
+                hash_mapping[line[0]].append([line[1],line[2]])
+
+            except KeyError:
+                hash_mapping[line[0]]=[[line[1],line[2]]]
+
         for species in sorted(ActualGenome.getinstances(), key=lambda x: x.species[0]):
+
+            ID_mapping = hash_mapping[species.species[0]]
 
             actualgenomexml = etree.Element("species")
             self.treeOfLife.insert(0, actualgenomexml)
@@ -224,7 +237,8 @@ class XML_manager(object):
                 genexml = etree.SubElement(genesxml, "gene")
                 genexml.set("id", str(gene.UniqueId))
                 no = log10(gene.speciesId)
-                genexml.set("protId", gene.species[0] + (4 - trunc(no)) * '0' + str(gene.speciesId))
+                genexml.set("OMAId", gene.species[0] + (4 - trunc(no)) * '0' + str(gene.speciesId))
+                genexml.set("protId", ID_mapping[gene.speciesId-1][1])
 
     def finish_xml_and_export(self, set):
         # Add each <species> into orthoXML
