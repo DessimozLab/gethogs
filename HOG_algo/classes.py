@@ -195,7 +195,7 @@ class Hierarchical_merger(object):
         else:
             for child in node:
                 self.recursive_traversal(child)
-            #node.genome = AncestralGenome(node, self)
+            node.genome = AncestralGenome(node, self)
 
 
 class XML_manager(object):
@@ -214,9 +214,6 @@ class XML_manager(object):
 
             except KeyError:
                 hash_mapping[species_name]=[[line[1],line[2]]]
-
-        for key, value in hash_mapping.items():
-            print(key)
 
         for species in sorted(ActualGenome.getinstances(), key=lambda x: x.species[0]):
             ID_mapping = hash_mapping[species.species[0]]
