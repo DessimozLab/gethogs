@@ -25,6 +25,16 @@
 		
 	}
 
+    .green{
+    color: rgb(48,124,59) !important;
+    font-size:3em;
+
+    }
+
+    .carousel-inner > .item > img {
+    margin: 0 auto;
+}
+
 	.hrmenu { 
 		display: block;
 		margin-top: 0.5em;
@@ -33,7 +43,6 @@
 		margin-right: auto;
 		border-style: solid;
 		border-width: 1px;
-		border-color: rgb(0,0,0);
 		border-color: rgb(48,124,59);
 	}
 
@@ -49,6 +58,8 @@
 		color: white;
 	}
 
+
+
 </style>
 
 
@@ -56,7 +67,7 @@
 <body>
 
 	<div class="container-fluid">  
-		<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1"> 
+		<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1">
 			
 			<div class="row">  <!-- header -->
 				<div class="col-md-6  col-sm-6 "> <!-- logo -->
@@ -70,26 +81,32 @@
 
 			<hr >
 			<div class="row"> <!-- nav -->
-				<div class="col-md-4 col-sm-4  text-center">
-					<a href="index.html">Home</a>
-				</div>
-				<div class="col-md-4 col-sm-4  text-center">
-					<a href="Overview.html">Project</a>
-				</div>
-				<div class="col-md-4  col-sm-4 text-center">
-					<a href="selection.html">Selection</a>
-				</div>
-			</div> <!-- end nav -->
+            <div class="col-md-2 col-sm-2 text-center">
+                <a href="index.html">Home</a>
+            </div>
+            <div class="col-md-2 col-sm-2  text-center">
+                <a href="?.html">About</a>
+            </div>
+            <div class="col-md-2  col-sm-2 text-center">
+                <a href="overview.html">Public Projects</a>
+            </div>
+            <div class="col-md-3 col-sm-3  text-center">
+                <a href="result.html">Public Results</a>
+            </div>
+            <div class="col-md-3 col-sm-3  text-center">
+                <a href="index.html#subsub">Upload own data</a>
+            </div>
+        </div> <!-- end nav -->
 			<hr >
 			<br>
 
 
 
 			<div class="row"> <!-- menu  -->
-				<div class="col-md-6 col-md-offset-3 ">
+				<div class="col-md-10 col-md-offset-1 ">
 
 					<ul class="list-group"> <!--  top level -->
-						<li class="list-group-item"><h3>Select Results Here</h3></li> 
+						<li class="list-group-item"><h3>Select Results Here</h3></li>
 
 						<li class="list-group-item"><h5>Phylogeny-Based Definition Benchmarks</h5>
 
@@ -102,19 +119,19 @@
 
 						</li> <!-- end  top level -->
 
-						<li class="list-group-item "><h5>Function-Based Definition Benchmarks</h5> 
+						<li class="list-group-item "><h5>Function-Based Definition Benchmarks</h5>
 
 							<ul class="list-group inner">  <!-- II level -->
 								<li class="list-group-item"><a href="#">Gene Ontology conservation test</a></li>
 								<li class="list-group-item"><a href="#">Enzyme Classification (EC) conservation test</a></li>
 							</ul> <!-- end II level -->
 
-						</li> 
+						</li>
 					</ul>  <!-- end top level -->
 
 				</div>
 			</div> <!-- end menu  -->
-		</div> 
+		</div>
 
 
 		<div class="row">
@@ -134,6 +151,8 @@
 								
 							</ul> <!-- end menu sub-element -->
 
+                            <br>
+
 							<div class="tab-content"> <!-- sub-element tab panel-->
 
 
@@ -144,11 +163,13 @@
 										<hr class="hrmenu">	
 									</div> <!-- end tab title -->
 									<br>
-
 									<div class="row">
 										<div class="col-md-8">  <!-- left panel -->
 
-											<table class="table table-condensed table-hover">
+                                                <div class="table-responsive">
+
+
+											<table class="table table-bordered table-condensed table-hover">
 												<tr>
 													<th>Project</th>
 													<th>completed tree samplings (of 50k trials)</th> 
@@ -252,6 +273,7 @@
 
 												</tr>
 											</table>
+                                            </div>
 										</div> <!-- end left panel -->
 
 										<div class="col-md-4 "> <!-- right panel -->
@@ -298,6 +320,8 @@
 
 								</div>  <!-- end sub-element tab -->
 
+                                <br/>
+
 								<div role="tabpanel" class="tab-pane" id="Fungi">  <!--  sub-element tab -->
 
 
@@ -310,7 +334,12 @@
 										<hr class="hrmenu">	
 									</div>
 
-									<table class="table table-hover">
+                                    <br/>
+
+									<div class="table-responsive">
+
+
+											<table class="table table-bordered table-condensed table-hover">
 										<tr>
 											<th>Project</th>
 											<th>completed tree samplings (of 50k trials)</th> 
@@ -395,8 +424,11 @@
 
 										</tr>
 									</table>
+                                        </div>
 
-									<div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+                                    <br/><br/>
+
+									<div id="carousel-example-generic2" class="carousel slide" data-ride="carousel">
 										<!-- Indicators -->
 										<ol class="carousel-indicators">
 											<li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
@@ -409,25 +441,22 @@
 											<div class="item active">
 												<img src="test.png" alt="...">
 												<div class="carousel-caption">
-													...
 												</div>
 											</div>
 											<div class="item">
 												<img src="test.png" alt="...">
 												<div class="carousel-caption">
-													...
 												</div>
 											</div>
-											...
 										</div>
 
 										<!-- Controls -->
-										<a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
-											<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+										<a class="  pull-left" href="#carousel-example-generic2" role="button" data-slide="prev">
+											<span class="glyphicon glyphicon-chevron-left green" aria-hidden="true"></span>
 											<span class="sr-only">Previous</span>
 										</a>
-										<a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
-											<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+										<a class="   pull-right " href="#carousel-example-generic2" role="button" data-slide="next">
+											<span class="glyphicon glyphicon-chevron-right green" aria-hidden="true"></span>
 											<span class="sr-only">Next</span>
 										</a>
 									</div>

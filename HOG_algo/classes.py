@@ -195,7 +195,7 @@ class Hierarchical_merger(object):
         else:
             for child in node:
                 self.recursive_traversal(child)
-            node.genome = AncestralGenome(node, self)
+            #node.genome = AncestralGenome(node, self)
 
 
 class XML_manager(object):

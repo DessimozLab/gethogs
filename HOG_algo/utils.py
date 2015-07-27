@@ -95,6 +95,7 @@ def get_genomes_size(filepath):
     for pairs in data:
         genome = pairs[0].decode()
         genome_size[genome]=pairs[1]
+    print(genome_size)
     return genome_size
 
 
