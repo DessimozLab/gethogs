@@ -208,11 +208,12 @@ class XML_manager(object):
         hash_mapping = {}
         data = np.genfromtxt('../Data/66_genomes/IDmapping.txt', dtype=None , delimiter="", usecols=(0,1,2))
         for line in data:
+            species_name = line[0].decode(encoding='UTF-8',errors='strict')
             try :
-                hash_mapping[line[0]].append([line[1],line[2]])
+                hash_mapping[species_name].append([line[1],line[2]])
 
             except KeyError:
-                hash_mapping[line[0]]=[[line[1],line[2]]]
+                hash_mapping[species_name]=[[line[1],line[2]]]
 
         for key, value in hash_mapping.items():
             print(key)
