@@ -205,6 +205,29 @@ class XML_manager(object):
         self.groupsxml = etree.SubElement(self.treeOfLife, "groups")
 
     def fill_species_xml(self):
+
+        for species in sorted(ActualGenome.getinstances(), key=lambda x: x.species[0]):
+            actualgenomexml = etree.Element("species")
+            self.treeOfLife.insert(0, actualgenomexml)
+            actualgenomexml.set("name", species.species[0])
+            actualgenomexml.set("NCBITaxId", '0')
+
+            # Add <database> into <species>
+            databasexml = etree.SubElement(actualgenomexml, "database")
+            databasexml.set("name", 'randomDB')
+            databasexml.set("version", '42')
+
+            # Add <genes> TAG into <database>
+            genesxml = etree.SubElement(databasexml, "genes")
+
+            # Fill <genes> with <gene>
+            for gene in species.genes:
+                genexml = etree.SubElement(genesxml, "gene")
+                genexml.set("id", str(gene.UniqueId))
+                no = log10(gene.speciesId)
+                genexml.set("protId", gene.species[0] + (4 - trunc(no)) * '0' + str(gene.speciesId))
+
+    def fill_species_xml_with_mapping(self):
         hash_mapping = {}
         data = np.genfromtxt('../Data/66_genomes/IDmapping.txt', dtype=None , delimiter="", usecols=(0,1,2))
         for line in data:
@@ -241,7 +264,10 @@ class XML_manager(object):
     def finish_xml_and_export(self, set):
         # Add each <species> into orthoXML
         treeOflife = self.treeOfLife
-        self.fill_species_xml()
+        if set.dataset == "insane":
+            self.fill_species_xml_with_mapping()
+        else:
+            self.fill_species_xml()
         self.replace_xml_hog_with_gene()
         utils.indent(treeOflife)
         tree = etree.ElementTree(treeOflife)
@@ -398,6 +424,7 @@ class Merge_ancestral(object):
         self.matrix = np.zeros([genome1.getNumberOfHOGs(), genome2.getNumberOfHOGs()], dtype=int)
         self.newHOGs = []
         self.do_the_merge()
+        self.matrix = []
 
     def do_the_merge(self):
         print("-- Merging of " + str(self.genome1) +" "+ str(self.genome2))

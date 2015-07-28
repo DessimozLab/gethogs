@@ -30,6 +30,7 @@ def launch_job(param, dataset,FA,method_merge):
     set.prefix_path = "../Result/" + method_merge + "/"
     set.dir_name_param = "OMA_bottom_" + str(param)
     set.param_merge = param
+    set.dataset= dataset
     set.method_merge = method_merge
     if not os.path.isdir( set.prefix_path + "/"):
         os.mkdir(set.prefix_path + "/")
