@@ -45,7 +45,7 @@ def create_xml_solo_hog(groupsxml,hog,species):
     gene = hog.genes[species][0]
     hogxml.set('genehog',str(gene.UniqueId))
     no = log10(gene.speciesId)
-    hogxml.set("protId", gene.species[0] +(4-trunc(no))*'0' + str(gene.speciesId))
+    hogxml.set("OMAId", gene.species[0] +(4-trunc(no))*'0' + str(gene.speciesId))
     return hogxml
 
 
