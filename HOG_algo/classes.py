@@ -470,7 +470,7 @@ class Merge_ancestral(object):
         for genome in self.children:
             for hog in genome.HOGS:
                 list_hogs.append(hog)
-        list_hogs = sorted(set(list_hogs))
+        list_hogs = set(list_hogs)
         list_hogs_not_computed = list(set(list_hogs) - set(self.hogComputed))
         self.updatesoloHOGs(list_hogs_not_computed)
         print("\t * %s seconds --" % (time.time() - start_time) + ' Updating soloHOGs.')
@@ -529,7 +529,7 @@ class Merge_ancestral(object):
             connectedComponents.union(h1, h2)
             self.hogComputed.append(h1)
             self.hogComputed.append(h2)
-        self.hogComputed = sorted(set(self.hogComputed))
+        self.hogComputed = set(self.hogComputed)
         self.connectedComponents = connectedComponents.get_components()
 
 
