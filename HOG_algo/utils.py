@@ -75,18 +75,17 @@ def indent(elem, level=0):
 
 
 def compute_score_merging(self, hog1, hog2):
-    if self.hierarchical_merger.settings.method_merge == "A":
-        total_relations = 0
-        hog_genome_1 = self.genome1.HOGS[hog1 - self.size[1]]
-        hog_genome_2 = self.genome2.HOGS[hog2]
-        nbr_genes_hog1 = len(hog_genome_1.genes)
-        nbr_genes_hog2 = len(hog_genome_2.genes)
-        score_matrix = self.matrix[self.genome1.HOGS.index(hog_genome_1)][self.genome2.HOGS.index(hog_genome_2)]
-        total_relations = total_relations + score_matrix
-        maximum_relations = nbr_genes_hog1 * nbr_genes_hog2
-        score = float(total_relations*100)/float(maximum_relations*100)
-        score = score * 100
-        return score
+    total_relations = 0
+    hog_genome_1 = self.genome1.HOGS[hog1 - self.size[1]]
+    hog_genome_2 = self.genome2.HOGS[hog2]
+    nbr_genes_hog1 = len(hog_genome_1.genes)
+    nbr_genes_hog2 = len(hog_genome_2.genes)
+    score_matrix = self.matrix[self.genome1.HOGS.index(hog_genome_1)][self.genome2.HOGS.index(hog_genome_2)]
+    total_relations = total_relations + score_matrix
+    maximum_relations = nbr_genes_hog1 * nbr_genes_hog2
+    score = float(total_relations*100)/float(maximum_relations*100)
+    score = score * 100
+    return score
 
 def get_genomes_size(filepath):
     data = np.genfromtxt(filepath, dtype=None , delimiter="", usecols=(0,1))

@@ -26,7 +26,6 @@ class Settings(object):
         self.dir_name_param = None
         self.xml_name_param = None
         self.param_merge = None
-        self.method_merge = ""
 
 class Genome(object):
     IdCount = 0
@@ -110,7 +109,7 @@ class AncestralGenome(Genome):
             for i in range(len(chi.species)):
                 self.species.append(chi.species[i])
         start_time = time.time()
-        e = Merge_ancestral(self, self.children[0], self.children[1], hierarchical_merger)
+        e = Merge_ancestral(self, self.children, hierarchical_merger)
         self.HOGS = e.newHOGs
         print("\t - %s seconds " % (time.time() - start_time) + str(self.children[0]) + "&" + str(self.children[1]) +' MERGED. \n' )
 
@@ -416,12 +415,12 @@ class Filemap(object):
 
 class Merge_ancestral(object):
 
-    def __init__(self, newgenome, genome1, genome2, hierarchical_merger):
+    def __init__(self, newgenome, children, hierarchical_merger):
         self.newgenome = newgenome
-        self.genome1 = genome1
-        self.genome2 = genome2
+        self.genome1 = children[0]
+        self.genome2 = children[1]
         self.hierarchical_merger = hierarchical_merger
-        self.matrix = np.zeros([genome1.getNumberOfHOGs(), genome2.getNumberOfHOGs()], dtype=int)
+        self.matrix = np.zeros([self.genome1.getNumberOfHOGs(), self.genome2.getNumberOfHOGs()], dtype=int)
         self.newHOGs = []
         self.do_the_merge()
         self.matrix = []

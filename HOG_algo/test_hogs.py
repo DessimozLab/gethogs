@@ -4,21 +4,45 @@ import filecmp
 import gc
 
 
-class HOG_Integration_Test(unittest.TestCase):
-    settings = None
-    dataset = None
+class HOG_Integration_Test_tiny(unittest.TestCase):
+
 
     def test_hogs_tiny(self):
-        self.assertTrue(filecmp.cmp("../Result/" + self.settings.dir_name_param + "/" + self.settings.xml_name_param, '../Result/test_reference/OMA_HOG_bottom_'+ self.dataset +'.xml'))
+        self.assertTrue(filecmp.cmp("../Result/OMA_bottom_0/OMA_HOGS_bottom_0_tiny.xml", '../Result/test_reference/OMA_HOGS_bottom_0_tiny.xml'))
         gc.collect()
+
+
+
+class HOG_Integration_Test_big(unittest.TestCase):
+
+    def test_hogs_big(self):
+        self.assertTrue(filecmp.cmp("../Result/OMA_bottom_0/OMA_HOGS_bottom_0_big.xml", '../Result/test_reference/OMA_HOGS_bottom_0_big.xml'))
+        gc.collect()
+
+
+class HOG_Integration_Test_huge(unittest.TestCase):
+
+    def test_hogs_huge(self):
+        self.assertTrue(filecmp.cmp("../Result/OMA_bottom_0/OMA_HOGS_bottom_0_huge.xml", '../Result/test_reference/OMA_HOGS_bottom_0_huge.xml'))
+        gc.collect()
+
+
+
 
 def launch_test(set,dataset):
     if dataset == 'big':
-        set.xml_name_param = "OMA_HOGS_bottom_"+ str(set.param_merge) +'_big.xml'
+        test_big = unittest.TestLoader().loadTestsFromTestCase(HOG_Integration_Test_big)
+        unittest.TextTestRunner().run(test_big)
+
     elif dataset == 'tiny':
-        HOG_Integration_Test.settings = set
-        HOG_Integration_Test.dataset = dataset
-        test_tiny = unittest.TestLoader().loadTestsFromTestCase(HOG_Integration_Test)
+        test_tiny = unittest.TestLoader().loadTestsFromTestCase(HOG_Integration_Test_tiny)
         unittest.TextTestRunner().run(test_tiny)
+
+    elif dataset == 'huge':
+        test_huge = unittest.TestLoader().loadTestsFromTestCase(HOG_Integration_Test_huge)
+        unittest.TextTestRunner().run(test_huge)
+
+    elif dataset == 'insane':
+        print("***** IMPOSSIBRU")
 
 
