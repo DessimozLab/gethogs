@@ -22,6 +22,10 @@ def draw_tree(tree):
     tree.ladderize()
     Phylo.draw_ascii(tree)
 
+def tuple_key_in_dict(dict,tuple):
+    any(tuple == pair for pair in dict)
+
+
 
 def create_actualGenome(genome_name, hierarchical_merger):
         groupsxml = hierarchical_merger.XML_manager.groupsxml
@@ -74,14 +78,12 @@ def indent(elem, level=0):
 
 
 
-def compute_score_merging(self, hog1, hog2):
+def compute_score_merging(self, hog1, hog2, orthorel):
     total_relations = 0
-    hog_genome_1 = self.genome1.HOGS[hog1 - self.size[1]]
-    hog_genome_2 = self.genome2.HOGS[hog2]
-    nbr_genes_hog1 = len(hog_genome_1.genes)
-    nbr_genes_hog2 = len(hog_genome_2.genes)
-    score_matrix = self.matrix[self.genome1.HOGS.index(hog_genome_1)][self.genome2.HOGS.index(hog_genome_2)]
-    total_relations = total_relations + score_matrix
+    nbr_genes_hog1 = len(hog1.genes)
+    nbr_genes_hog2 = len(hog2.genes)
+    score_graph = orthorel
+    total_relations = total_relations + score_graph
     maximum_relations = nbr_genes_hog1 * nbr_genes_hog2
     score = float(total_relations*100)/float(maximum_relations*100)
     score = score * 100

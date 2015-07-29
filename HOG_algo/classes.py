@@ -33,6 +33,7 @@ class Genome(object):
     def __init__(self):
         self.HOGS = []
         self.species = []
+        self.children = []
         self.UniqueId = Genome.IdCount
         Genome.IdCount += 1
 
@@ -51,6 +52,10 @@ class Genome(object):
     def get_name(self):
         return "".join(self.species)
 
+    def is_child(self, genome):
+        if genome in self.children:
+            return True
+
 
 class ActualGenome(Genome):
     _instances = set()
@@ -58,6 +63,7 @@ class ActualGenome(Genome):
     def __init__(self, name):
         super(ActualGenome, self).__init__()
         self.species = [name]
+        self.children = [self]
         self.genes = []
         self._instances.add(weakref.ref(self))
 
@@ -84,12 +90,13 @@ class ActualGenome(Genome):
         print('-> Genome '+ self.species[0] + " created. \n")
         for i in range(1, number + 1):
             hog = HOG()
+            hog.topspecie= self
             gene = Gene(i, self.species)
             gene.hog[self] = hog
-            hog.genes[self.species[0]] = [gene]
+            hog.genes[self] = [gene]
             self.HOGS.append(hog)
             self.genes.append(gene)
-            hog.xml = utils.create_xml_solo_hog(groupsxml, hog, self.species[0])
+            hog.xml = utils.create_xml_solo_hog(groupsxml, hog, self)
 
     def get_gene_by_nr(self, nr):
         return self.genes[nr - 1]
@@ -114,6 +121,7 @@ class AncestralGenome(Genome):
         print("\t - %s seconds " % (time.time() - start_time) + str(self.children[0]) + "&" + str(self.children[1]) +' MERGED. \n' )
 
 
+
 class HOG(object):
     IdCount = 0
 
@@ -133,8 +141,9 @@ class HOG(object):
                 self.genes[key] = HOG2.genes[key]
 
     def updateGenometoAllGenes(self, GENOME):
-        for key, value in self.genes.items():
-            for gene in value:
+        self.topspecie = GENOME
+        for genome, genes in self.genes.items():
+            for gene in genes:
                 gene.hog[GENOME] = self
 
 
@@ -148,7 +157,7 @@ class Gene(object):
         self.UniqueId = Gene.IdCount
         Gene.IdCount += 1
 
-    def get_hog(self, anc_geneome_obj):
+    def get_hog(self,anc_geneome_obj):
         return self.hog[anc_geneome_obj]
 
 
@@ -417,27 +426,34 @@ class Merge_ancestral(object):
 
     def __init__(self, newgenome, children, hierarchical_merger):
         self.newgenome = newgenome
-        self.genome1 = children[0]
-        self.genome2 = children[1]
+        self.children = children
         self.hierarchical_merger = hierarchical_merger
-        self.matrix = np.zeros([self.genome1.getNumberOfHOGs(), self.genome2.getNumberOfHOGs()], dtype=int)
+        self.orthograph = {}
+        self.hogComputed= []
         self.newHOGs = []
         self.do_the_merge()
-        self.matrix = []
+        self.orthograph = {}
+
 
     def do_the_merge(self):
-        print("-- Merging of " + str(self.genome1) +" "+ str(self.genome2))
+        print("-- Merging of ")
+        for genome in self.children:
+            print("-",str(genome))
+
         # Find Orthologous relations between all genes of all species
-        self.find_ortho_relations()
+        already_aligned= {}
+        for g1 in self.children:
+            for g2 in self.children:
+                if g1 != g2:
+                    if g2 not in already_aligned:
+                        self.find_ortho_relations(g1, g2)
+                        already_aligned[g1]=g2
 
         # Find all HOGs relations in the matrix, replace with 1 the significant relations and with 0 for the unrevelant
         start_time = time.time()
-        self.find_hogs_links(1)
-        self.clean_matrix(self.hierarchical_merger.settings.param_merge)
-        print("\t * %s seconds --" % (time.time() - start_time)+ ' Cleaning the matrix')
+        self.clean_graph(self.hierarchical_merger.settings.param_merge)
+        print("\t * %s seconds --" % (time.time() - start_time)+ ' Cleaning the graph')
 
-        # Find all HOGs relations in the matrix
-        self.find_hogs_links(1)
 
         # Cluster HOGs of a same connected component and merge them in a new HOG
         start_time = time.time()
@@ -450,11 +466,16 @@ class Merge_ancestral(object):
 
         # Update solo Hog to the new taxonomic range
         start_time = time.time()
-        positionHOG1 = set(self.lencol) - set(np.asarray(self.genome1Computed))
-        positionHOG2 = set(self.lenrow) - set(np.asarray(self.genome2Computed))
-        self.updatesoloHOGs(positionHOG1, self.genome1)
-        self.updatesoloHOGs(positionHOG2, self.genome2)
+        list_hogs = []
+        for genome in self.children:
+            for hog in genome.HOGS:
+                list_hogs.append(hog)
+        list_hogs = sorted(set(list_hogs))
+        list_hogs_not_computed = list(set(list_hogs) - set(self.hogComputed))
+        self.updatesoloHOGs(list_hogs_not_computed)
         print("\t * %s seconds --" % (time.time() - start_time) + ' Updating soloHOGs.')
+
+
 
 
 
@@ -468,105 +489,96 @@ class Merge_ancestral(object):
             taxon = etree.SubElement(anchogxml, "property")
             taxon.set("name", 'TaxRange')
             strtaxon = ''
-            for species in self.genome1.species:
-                strtaxon = strtaxon + str(species)
-            for species in self.genome2.species:
-                strtaxon = strtaxon + str(species)
+            for genome in self.children:
+                for species in genome.species:
+                    strtaxon = strtaxon + str(species)
             taxon.set("value", strtaxon)
-            cnt_in_genome1 = sum(map(lambda e: e >= self.size[1], con))
-            cnt_in_genome2 = len(con) - cnt_in_genome1
-            if cnt_in_genome1 > 1:
-                paraxml = etree.SubElement(anchogxml, "paralogGroup")
-                parent_groupElement1 = paraxml
-            else:
-                parent_groupElement1 = anchogxml
-            if cnt_in_genome2 > 1:
-                paraxml = etree.SubElement(anchogxml, "paralogGroup")
-                parent_groupElement2 = paraxml
-            else:
-                parent_groupElement2 = anchogxml
-            for e in con:
-                if e >= self.size[1]:
-                    newHOG.mergeHOGwith(self.genome1.HOGS[e - self.size[1]])
-                    hogxml = self.genome1.HOGS[e - self.size[1]].xml
-                    parent_groupElement1.append(hogxml)
+            hog_by_genomes = {}
+            xml_by_genome = {}
+            for genome in self.children:
+                hog_by_genomes[genome] = []
+                xml_by_genome[genome] = anchogxml
 
-                else:
-                    newHOG.mergeHOGwith(self.genome2.HOGS[e])
-                    hogxml = self.genome2.HOGS[e].xml
-                    parent_groupElement2.append(hogxml)
+            for hog in con:
+                hog_by_genomes[hog.topspecie].append(hog)
 
+            for genome_key, genome_hogs  in hog_by_genomes.iteritems():
+                if len(genome_hogs) > 1:
+                    xml_by_genome[genome_key] = etree.SubElement(anchogxml, "paralogGroup")
+
+            for genome in self.children:
+                for hog in hog_by_genomes[genome]:
+                    newHOG.mergeHOGwith(hog)
+                    hogxml = hog.xml
+                    xml_by_genome[genome].append(hogxml)
             newHOG.updateGenometoAllGenes(self.newgenome)
             self.newHOGs.append(newHOG)
 
 
 
-    def updatesoloHOGs(self, positions, genome):
-        for positionHOGinmatrix in positions:
-            oldHog = genome.HOGS[positionHOGinmatrix]
+
+
+    def updatesoloHOGs(self, list_hog):
+        for oldHog in list_hog:
             oldHog.updateGenometoAllGenes(self.newgenome)
             self.newHOGs.append(oldHog)
 
     def search_CC(self):
         connectedComponents = UNION.UnionFind()
-        for i in range(len(self.genome1_matrice_index)):
-            connectedComponents.union(self.genome1_matrice_index[i] + self.size[1], self.genome2_matrice_index[i])
-            self.genome1Computed.append(self.genome1_matrice_index[i])
-            self.genome2Computed.append(self.genome2_matrice_index[i])
-        self.genome1Computed = sorted(set(self.genome1Computed))
-        self.genome2Computed = sorted(set(self.genome2Computed))
+        for (h1, h2), orthorel in self.orthograph.iteritems():
+            connectedComponents.union(h1, h2)
+            self.hogComputed.append(h1)
+            self.hogComputed.append(h2)
+        self.hogComputed = sorted(set(self.hogComputed))
         self.connectedComponents = connectedComponents.get_components()
 
-    def find_hogs_links(self,threshold):
-        start_time = time.time()
-        itemindex = np.where(self.matrix >= threshold)
-        print("\t * %s seconds -- " % (time.time() - start_time)+ "Finding HOGs relations.")
 
-        itemindex = list(itemindex)
-        self.genome1_matrice_index = itemindex[0]
-        self.genome2_matrice_index = itemindex[1]
-        self.genome1Computed = []
-        self.genome2Computed = []
-        self.size = list(self.matrix.shape)
-        self.lencol = np.arange(self.size[0])
-        self.lenrow = np.arange(self.size[1])
 
-    def clean_matrix(self, threshold):
-        for i in range(len(self.genome1_matrice_index)):
-            hog_genome1 = self.genome1_matrice_index[i] + self.size[1]
-            hog_genome2 = self.genome2_matrice_index[i]
-            score = utils.compute_score_merging(self,hog_genome1,hog_genome2)
-            if score > threshold:
-                self.matrix[self.genome1_matrice_index[i]][self.genome2_matrice_index[i]] = 1
+    def clean_graph(self, threshold):
+        for (h1, h2), orthorel in self.orthograph.iteritems():
+            score = utils.compute_score_merging(self,h1,h2, orthorel)
+            if score >= threshold:
+                self.orthograph[(h1, h2)] = 1
             else:
-                self.matrix[self.genome1_matrice_index[i]][self.genome2_matrice_index[i]] = 0
+                del self.orthograph[(h1, h2)]
 
-    def find_ortho_relations(self):
-        for i in self.genome1.species:
+    def find_ortho_relations(self, genome1, genome2):
+        for i in genome1.species:
             actual_genome1 = ActualGenome.find_genome_by_name(i)
-            for j in self.genome2.species:
+            for j in genome2.species:
                 actual_genome2 = ActualGenome.find_genome_by_name(j)
-                self.align_two_specie_fill_matrix(actual_genome1, actual_genome2)
+                self.align_two_specie_fill_graph(actual_genome1, actual_genome2, genome1, genome2)
 
-    def align_two_specie_fill_matrix(self, actual_genome1, actual_genome2):
+    def align_two_specie_fill_graph(self, actual_genome1, actual_genome2, genome1, genome2):
         data, inverted = self.hierarchical_merger.filemap.loadfile(actual_genome1, actual_genome2)
         start_time = time.time()
         try:
             numberOfOrthologs = len(data['gene1'])
             for i in range(numberOfOrthologs):
                 raw = data[i]
-                self.find_hog_fill_matrix_cell(inverted, actual_genome1, actual_genome2, raw)
+                self.find_hog_fill_graph(inverted, actual_genome1, actual_genome2, raw, genome1, genome2)
 
         except TypeError:
             raw = data
-            self.find_hog_fill_matrix_cell(inverted, actual_genome1, actual_genome2, raw)
+            self.find_hog_fill_graph(inverted, actual_genome1, actual_genome2, raw , genome1, genome2)
         print("\t * %s seconds -- " % (time.time() - start_time)+ str(actual_genome1)+ ' & '+ str(actual_genome2) + " aligned.")
 
-    def find_hog_fill_matrix_cell(self, inverted, actual_genome1, actual_genome2, raw):
+    def find_hog_fill_graph(self, inverted, actual_genome1, actual_genome2, raw, genome1, genome2):
+
         if inverted:
-            hogOfgene1 = actual_genome1.get_gene_by_nr(raw['gene2']).get_hog(self.genome1)
-            hogOfgene2 = actual_genome2.get_gene_by_nr(raw['gene1']).get_hog(self.genome2)
+            hogOfgene1 = actual_genome1.get_gene_by_nr(raw['gene2']).get_hog(genome1)
+            hogOfgene2 = actual_genome2.get_gene_by_nr(raw['gene1']).get_hog(genome2)
         else:
-            hogOfgene1 = actual_genome1.get_gene_by_nr(raw['gene1']).get_hog(self.genome1)
-            hogOfgene2 = actual_genome2.get_gene_by_nr(raw['gene2']).get_hog(self.genome2)
-        self.matrix[self.genome1.HOGS.index(hogOfgene1)][self.genome2.HOGS.index(hogOfgene2)] += 1
+            hogOfgene1 = actual_genome1.get_gene_by_nr(raw['gene1']).get_hog(genome1)
+            hogOfgene2 = actual_genome2.get_gene_by_nr(raw['gene2']).get_hog(genome2)
+
+
+
+
+        try:
+            self.orthograph[(hogOfgene1,hogOfgene2)] += 1
+        except KeyError:
+            try:
+                self.orthograph[(hogOfgene2,hogOfgene1)] += 1
+            except KeyError:
+                self.orthograph[(hogOfgene1,hogOfgene2)] = 1
