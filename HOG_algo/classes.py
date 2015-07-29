@@ -502,7 +502,7 @@ class Merge_ancestral(object):
             for hog in con:
                 hog_by_genomes[hog.topspecie].append(hog)
 
-            for genome_key, genome_hogs  in hog_by_genomes.iteritems():
+            for genome_key, genome_hogs  in hog_by_genomes.items():
                 if len(genome_hogs) > 1:
                     xml_by_genome[genome_key] = etree.SubElement(anchogxml, "paralogGroup")
 
@@ -525,7 +525,7 @@ class Merge_ancestral(object):
 
     def search_CC(self):
         connectedComponents = UNION.UnionFind()
-        for (h1, h2), orthorel in self.orthograph.iteritems():
+        for (h1, h2), orthorel in self.orthograph.items():
             connectedComponents.union(h1, h2)
             self.hogComputed.append(h1)
             self.hogComputed.append(h2)
@@ -535,7 +535,7 @@ class Merge_ancestral(object):
 
 
     def clean_graph(self, threshold):
-        for (h1, h2), orthorel in self.orthograph.iteritems():
+        for (h1, h2), orthorel in self.orthograph.items():
             score = utils.compute_score_merging(self,h1,h2, orthorel)
             if score >= threshold:
                 self.orthograph[(h1, h2)] = 1
