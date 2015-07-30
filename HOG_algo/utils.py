@@ -59,6 +59,10 @@ def replacesolohog(solohog):
     solohog.set('id', val)
     solohog.attrib.pop('genehog')
 
+def delsolohog(solohog):
+    solohog.getparent().remove(solohog)
+
+
 
 def indent(elem, level=0):
     i = "\n" + level*"  "

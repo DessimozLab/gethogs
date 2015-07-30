@@ -277,12 +277,16 @@ class XML_manager(object):
         else:
             self.fill_species_xml()
         self.replace_xml_hog_with_gene()
+        self.delete_xml_hog()
         utils.indent(treeOflife)
         tree = etree.ElementTree(treeOflife)
         tree.write(set.prefix_path + set.dir_name_param + "/" + set.xml_name_param, xml_declaration=True, encoding='utf-8', method="xml")
 
     def replace_xml_hog_with_gene(self):
         [utils.replacesolohog(b) for b in self.treeOfLife.iterfind(".//ortholGroup[@genehog]")]
+
+    def delete_xml_hog(self):
+        [utils.delsolohog(b) for b in self.treeOfLife.iterfind(".//groups/geneRef")]
 
 
 class Filemap(object):
