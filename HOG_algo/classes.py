@@ -489,6 +489,7 @@ class Merge_ancestral(object):
         for con in self.connectedComponents:
             newHOG = HOG()
             anchogxml = etree.SubElement(self.hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
+            anchogxml.set("id", str(newHOG.IdCount))
             newHOG.xml = anchogxml
             taxon = etree.SubElement(anchogxml, "property")
             taxon.set("name", 'TaxRange')
