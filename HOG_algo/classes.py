@@ -531,6 +531,8 @@ class Merge_ancestral(object):
     def search_CC(self):
         connectedComponents = UNION.UnionFind()
         for (h1, h2), orthorel in self.orthograph.items():
+            if orthorel <= 0:
+                continue
             connectedComponents.union(h1, h2)
             self.hogComputed.append(h1)
             self.hogComputed.append(h2)
@@ -545,7 +547,7 @@ class Merge_ancestral(object):
             if score >= threshold:
                 self.orthograph[(h1, h2)] = 1
             else:
-                del self.orthograph[(h1, h2)]
+                self.orthograph[(h1, h2)] = 0
 
     def find_ortho_relations(self, genome1, genome2):
         for i in genome1.species:
