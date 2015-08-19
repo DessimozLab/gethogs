@@ -278,6 +278,7 @@ class XML_manager(object):
             self.fill_species_xml()
         self.replace_xml_hog_with_gene()
         self.delete_xml_hog()
+        self.add_HOGs_ID()
         utils.indent(treeOflife)
         tree = etree.ElementTree(treeOflife)
         tree.write(set.prefix_path + set.dir_name_param + "/" + set.xml_name_param, xml_declaration=True, encoding='utf-8', method="xml")
@@ -287,6 +288,12 @@ class XML_manager(object):
 
     def delete_xml_hog(self):
         [utils.delsolohog(b) for b in self.treeOfLife.iterfind(".//groups/geneRef")]
+
+    def add_HOGs_ID(self):
+        id_count = 0
+        for i, e in enumerate(self.treeOfLife.findall('.//groups/orthologGroup')):
+            e.set('id', str(id_count))
+            id_count += 1
 
 
 class Filemap(object):
@@ -489,7 +496,6 @@ class Merge_ancestral(object):
         for con in self.connectedComponents:
             newHOG = HOG()
             anchogxml = etree.SubElement(self.hierarchical_merger.XML_manager.groupsxml, "orthologGroup")
-            anchogxml.set("id", str(newHOG.IdCount))
             newHOG.xml = anchogxml
             taxon = etree.SubElement(anchogxml, "property")
             taxon.set("name", 'TaxRange')
