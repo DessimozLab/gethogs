@@ -73,6 +73,15 @@ def main(argv):
         ec = ec + e
     print(ec)
 
+    cpt = 0
+    somme = 0
+    for id, value in coverage.items():
+        cpt += 1
+        somme += value[1]
+
+    print(somme/cpt)
+
+
 
 
 

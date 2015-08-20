@@ -26,11 +26,14 @@ def main(argv):
     gtt = fa.GeneTreeTracer(op, tax)
     toplevelog = op.getToplevelGroups()
     hoglist = [fa.GeneFamily(fam) for fam in toplevelog]
+    print(hoglist)
     # compute number of losses and number of leaves for each HOG
     hogcounts = dict()
     for hog in hoglist:
         hogcounts[hog.getFamId()] = dict()
         levels = hog.getLevels()
+        print(levels)
+        print(tax[levels[0]])
 
         # get HOG tree
         gene_tree = gtt.trace_gene_family(tax[levels[0]], hog, None, False)
