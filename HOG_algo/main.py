@@ -14,6 +14,7 @@ def main(set, dataset):
     ############################
 
     dataset = dataset
+
     hierarchical_merger = Hierarchical_merger(dataset)
     hierarchical_merger.settings = set
     utils.draw_tree(hierarchical_merger.tree)
