@@ -7,7 +7,7 @@ import json
 from displayResult.tinder_classes import *
 
 
-prefix = 'Result/'
+prefix = 'Results/'
 suffix = '.txt'
 
 
@@ -187,7 +187,7 @@ def show_match(match):
        print(c.children)
     print('family(s):', match.number_family)
     print('gene(s):',match.number_genes)
-    print('Result:',match.result)
+    print('Results:',match.result)
     print('\n')
 
 
@@ -266,17 +266,17 @@ taxon_MRHP = TaxonomicRange(param_taxo_range)
 stat_MRHP = Statistic()
 taxon_MRHP.statistic = stat_MRHP
 
-#parse_file1('Result/OMA_bottom_0_Homininae.txt', 'bottom',taxon_MRHP)
-#parse_file2('Result/OMA_cutting_none_Homininae.txt', 'cutting',taxon_MRHP)
+#parse_file1('Results/OMA_bottom_0_Homininae.txt', 'bottom',taxon_MRHP)
+#parse_file2('Results/OMA_cutting_none_Homininae.txt', 'cutting',taxon_MRHP)
 
 parse_file1(param_file_bottom, 'bottom',taxon_MRHP)
 parse_file2(param_file_cutting , 'cutting',taxon_MRHP)
 
-#parse_file1('Result/big_GHP_GHP.txt', 'bottom',taxon_MRHP)
-#parse_file1('Result/small_MRHP_MRHP.txt', 'bottom',taxon_MRHP)
-#parse_file2('Result/small_MRHP_MRHPbis.txt', 'cutting',taxon_MRHP)
-#parse_file2('Result/OMA_0_GHP_GHP.txt', 'cutting',taxon_MRHP)
-#parse_file('Result/small_MRHP_MRHPbis.txt', 'cutting',taxon_MRHP)
+#parse_file1('Results/big_GHP_GHP.txt', 'bottom',taxon_MRHP)
+#parse_file1('Results/small_MRHP_MRHP.txt', 'bottom',taxon_MRHP)
+#parse_file2('Results/small_MRHP_MRHPbis.txt', 'cutting',taxon_MRHP)
+#parse_file2('Results/OMA_0_GHP_GHP.txt', 'cutting',taxon_MRHP)
+#parse_file('Results/small_MRHP_MRHPbis.txt', 'cutting',taxon_MRHP)
 
 
 print("--- %s seconds ---" % (time.time() - start_time), '*** Files parsed ***')

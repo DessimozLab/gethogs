@@ -110,8 +110,6 @@ def get_genomes_size(filepath):
 '''
 def compute_score_merging_2(con, self):
 
-    hog_genome_1 = {}
-    hog_genome_2 = {}
 
     for e in con:
         if e >= self.size[1]:

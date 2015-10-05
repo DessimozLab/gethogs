@@ -8,7 +8,7 @@ class HOG_Integration_Test_tiny(unittest.TestCase):
 
 
     def test_hogs_tiny(self):
-        self.assertTrue(filecmp.cmp("../Result/OMA_bottom_0/OMA_HOGS_bottom_0_tiny.xml", '../Result/test_reference/OMA_HOGS_bottom_0_tiny.xml'))
+        self.assertTrue(filecmp.cmp("../Results/OMA_bottom_0/OMA_HOGS_bottom_0_tiny.xml", '../Results/test_reference/OMA_HOGS_bottom_0_tiny.xml'))
         gc.collect()
 
 
@@ -16,14 +16,14 @@ class HOG_Integration_Test_tiny(unittest.TestCase):
 class HOG_Integration_Test_big(unittest.TestCase):
 
     def test_hogs_big(self):
-        self.assertTrue(filecmp.cmp("../Result/OMA_bottom_0/OMA_HOGS_bottom_0_big.xml", '../Result/test_reference/OMA_HOGS_bottom_0_big.xml'))
+        self.assertTrue(filecmp.cmp("../Results/OMA_bottom_0/OMA_HOGS_bottom_0_big.xml", '../Results/test_reference/OMA_HOGS_bottom_0_big.xml'))
         gc.collect()
 
 
 class HOG_Integration_Test_huge(unittest.TestCase):
 
     def test_hogs_huge(self):
-        self.assertTrue(filecmp.cmp("../Result/OMA_bottom_0/OMA_HOGS_bottom_0_huge.xml", '../Result/test_reference/OMA_HOGS_bottom_0_huge.xml'))
+        self.assertTrue(filecmp.cmp("../Results/OMA_bottom_0/OMA_HOGS_bottom_0_huge.xml", '../Results/test_reference/OMA_HOGS_bottom_0_huge.xml'))
         gc.collect()
 
 

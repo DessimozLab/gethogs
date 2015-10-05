@@ -174,17 +174,17 @@ class Hierarchical_merger(object):
 
     def set_tree(self, dataset):
         if dataset == 'big':
-            tree = utils.read_tree('../Data/for_clement/tree.nwk', "newick")
+            tree = utils.read_tree('../Datasets/5_Genomes/tree.nwk', "newick")
             self.tree = tree
         elif dataset == 'tiny':
-            tree = utils.read_tree('../Data/PERFECTDATA/tree.nwk', "newick")
+            tree = utils.read_tree('../Datasets/3_Genomes/tree.nwk', "newick")
             self.tree = tree
         elif dataset == 'huge':
-            tree = utils.read_tree('../Data/20_genomes/tree.nwk', "newick")
+            tree = utils.read_tree('../Datasets/20_Genomes/tree.nwk', "newick")
             self.tree = tree
 
         elif dataset == 'insane':
-            tree = utils.read_tree('../Data/66_genomes/tree.nwk', "newick")
+            tree = utils.read_tree('../Datasets/QfO/tree.nwk', "newick")
             self.tree = tree
             pass
         else:
@@ -237,7 +237,7 @@ class XML_manager(object):
 
     def fill_species_xml_with_mapping(self):
         hash_mapping = {}
-        data = np.genfromtxt('../Data/66_genomes/IDmapping.txt', dtype=None , delimiter="", usecols=(0,1,2))
+        data = np.genfromtxt('../Datasets/QfO/ID_mapping.txt', dtype=None , delimiter="", usecols=(0,1,2))
         for line in data:
             species_name = line[0].decode(encoding='UTF-8',errors='strict')
             try :
@@ -299,7 +299,7 @@ class XML_manager(object):
 class Filemap(object):
     def __init__(self, dataset):
         self.dataset = dataset
-        self.prefix_display = '../for_clement/'
+        self.prefix_display = '../5_Genomes/'
         self.suffix = '.orth.txt'
         self.genome_pairs_data = []
         self.Folder, self.genomeSize, self.prefix = self.set_dataset(dataset)
@@ -316,7 +316,7 @@ class Filemap(object):
             Folder = {'CANFA': CANFA, 'HUMAN': HUMAN, 'MOUSE': MOUSE, 'PANTR': PANTR, 'RATNO': RATNO, 'GORGO': []}
             genomeSize = {'CANFA': 20610, 'HUMAN': 31589, 'MOUSE': 25724, 'PANTR': 18936, 'RATNO': 22690,
                           'GORGO': 21822}
-            prefix = '../Data/for_clement/'
+            prefix = '../Datasets/5_Genomes/'
             return Folder, genomeSize, prefix
         elif dataset == 'tiny':
             HUMAN = ['MOUSE', 'PANTR', 'RATNO']
@@ -324,21 +324,21 @@ class Filemap(object):
             PANTR = ['MOUSE', 'RATNO']
             Folder = {'HUMAN': HUMAN, 'MOUSE': MOUSE, 'PANTR': PANTR, 'RATNO': []}
             genomeSize = {'HUMAN': 3, 'MOUSE': 3, 'PANTR': 2, 'RATNO': 2}
-            prefix = '../Data/PERFECTDATA/'
+            prefix = '../Datasets/3_Genomes/'
             return Folder, genomeSize, prefix
 
         elif dataset == 'huge':
             Folder = None
             self.suffix = ".txt"
             genomeSize = {'HUMAN': 31589, 'APIME': 10378, 'BOVIN': 20310, 'CAEEL': 20800, 'CANFA': 20610, 'CHICK': 15504, 'DROME': 14506, 'GORGO': 21822, 'HORSE': 20405, 'MOUSE': 25724, 'NEUCR': 7569, 'PANTR': 18936, 'PENCW': 12770, 'PLAF7': 5503, 'RATNO': 22690, 'RHIOR': 16831, 'SCHPO': 5087, 'TETNG': 20020, 'XENTR': 19291, 'YEAST': 6352}
-            prefix = '../Data/20_genomes/PairwiseOrthologs/'
+            prefix = '../Datasets/20_Genomes/PairwiseOrthologs/'
             return Folder, genomeSize, prefix
 
         elif dataset == 'insane':
             Folder = None
             self.suffix = ".txt"
-            genomeSize = utils.get_genomes_size('../Data/66_genomes/Nr_genes.txt')
-            prefix = '../Data/66_genomes/PairwiseOrthologs/'
+            genomeSize = utils.get_genomes_size('../Datasets/QfO/genomes_sizes.txt')
+            prefix = '../Datasets/QfO/PairwiseOrthologs/'
             return Folder, genomeSize, prefix
 
     def genome_order(self, genome1, genome2):
@@ -363,12 +363,12 @@ class Filemap(object):
 
     def loadfile(self, genome1, genome2):
         if self.dataset == "huge":
-            files = utils.get_list_files('../Data/20_genomes/PairwiseOrthologs')
+            files = utils.get_list_files('../Datasets/20_Genomes/PairwiseOrthologs')
             genome1, genome2, inverted = self.genome_order_same_folder(genome1, genome2, files)
             filename = self.prefix + genome1.species[0] + '-' + genome2.species[0] + self.suffix
             usec = (0, 1, 4)
         elif self.dataset == "insane":
-            files = utils.get_list_files('../Data/66_genomes/PairwiseOrthologs')
+            files = utils.get_list_files('../Datasets/QfO/PairwiseOrthologs')
             genome1, genome2, inverted = self.genome_order_same_folder(genome1, genome2, files)
             filename = self.prefix + genome1.species[0] + '-' + genome2.species[0] + self.suffix
             usec = (0, 1, 3)

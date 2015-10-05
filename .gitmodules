@@ -1,3 +1,0 @@
-[submodule "family-analyzer"]
-	path = family-analyzer
-	url = ssh://gitolite@lab.dessimoz.org:2222/family-analyzer

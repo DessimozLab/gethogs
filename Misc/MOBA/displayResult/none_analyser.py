@@ -101,10 +101,10 @@ start_time = time.time()
 taxonomic_json = "Homininae_HP.json"
 
 none_matches = {'cutting': [], 'bottom': []}
-xml_path_bottom = '../Result/OMA_HOG_bottom_none.xml'
-xml_path_cutting = '../Result/OMA_HOG_with_cutparam_0_65_oid.orthoxml.xml'
-FA_file = '../Result/OMA_bottom_None_Euarchontoglires.txt'
-FA_file_cutting = '../Result/OMA_cutting_0_Euarchontoglires.txt'
+xml_path_bottom = '../Results/OMA_HOG_bottom_none.xml'
+xml_path_cutting = '../Results/OMA_HOG_with_cutparam_0_65_oid.orthoxml.xml'
+FA_file = '../Results/OMA_bottom_None_Euarchontoglires.txt'
+FA_file_cutting = '../Results/OMA_cutting_0_Euarchontoglires.txt'
 namefileparam = 'NoneMatche_Euarchontoglires_None'
 
 # parse_json(path.json) return dict of none from cutting or bottom
@@ -123,7 +123,7 @@ for bottom_none in dict_none['bottom']:
     none_matches['bottom'].append(gene_dict)
 
 # elif bottom = none                      for each *, only go next if present in current data
-    # * Data from Adrian
+    # * Datasets from Adrian
         # load in numpy + map
 adrian_data =load_and_parse_didi_file()
 
@@ -132,15 +132,15 @@ for species in adrian_data:
 #pprint(adrian_data)
 print("--- %s seconds ---" % (time.time() - start_time),'*** parse adidifile ***')
 
-     # * Data from my script:
+     # * Datasets from my script:
         #  parse .xml
 xml_dict_gene = load_and_parse_xml(xml_path_bottom)
 #pprint(xml_dict_gene)
 print("--- %s seconds ---" % (time.time() - start_time),'*** parse amyfile ***')
 
-        # * Data from F.A.:
+        # * Datasets from F.A.:
             # parse .txt
-#list_gene_F_A = parse_file('../Result/OMA_cutting_none_Homininae_onlyHUMANPANTR.txt')
+#list_gene_F_A = parse_file('../Results/OMA_cutting_none_Homininae_onlyHUMANPANTR.txt')
 list_gene_F_A = parse_file(FA_file)
 list_gene_F_A = set(list_gene_F_A)
 #print(list_gene_F_A)
@@ -153,14 +153,14 @@ print("--- %s seconds ---" % (time.time() - start_time))
 for cutting_none in dict_none['cutting']:
     for gene in cutting_none:
         gene_dict = {'id': gene, 'adidata': 'Not Found', 'amydata': 'Not Found', 'aFAdata': 'Not Found'}
-        # * Data from Adrian
+        # * Datasets from Adrian
             # check if there or not
         gene_dict['adidata'] = check_adidata(gene)
-        # * Data from my script:
+        # * Datasets from my script:
             # check if there or not
         gene_dict['amydata'] = check_amydata(gene)
 
-        # * Data from F.A.:
+        # * Datasets from F.A.:
             #check if there or not
         gene_dict['aFAdata'] = check_aFAdata(gene)
         if not gene_dict['aFAdata']:

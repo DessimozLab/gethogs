@@ -10,7 +10,7 @@ import main as ma
 
 def launch_job(param, dataset):
     set = classes.Settings()
-    set.prefix_path = "../Result/"
+    set.prefix_path = "../Results/"
     set.dir_name_param = "OMA_bottom_" + str(param)
     set.param_merge = param
     set.dataset= dataset
