@@ -119,14 +119,13 @@ def main(argv):
     set.output_name = set.output_name + str(d.hour) + 'h' + str(d.minute) + 'm' + str(d.second) + '.xml'
 
 
-    print("\n \n\n \n\n \n WARTHOGs launched on dataset " + str(set.folder_name) + " with the method  "+ str(set.method))
+    print(" \n\n \n WARTHOGs launched on dataset " + str(set.folder_name) + " with the method  "+ str(set.method))
 
     ############################
     start_time = time.time()
     ############################
 
     hierarchical_merger = Hierarchical_merger(set)
-    hierarchical_merger.settings = set
     utils.draw_tree(hierarchical_merger.tree)
     root = hierarchical_merger.tree.root
     hierarchical_merger.recursive_traversal(root)

@@ -35,9 +35,6 @@ class Settings(object):
         self.output_path = None
         self.output_name = None
 
-        self.dir_name_param = None
-        self.xml_name_param = None
-        self.param_merge = None
 
 class Genome(object):
     IdCount = 0
@@ -178,32 +175,18 @@ class Gene(object):
 
 class Hierarchical_merger(object):
 
-    def __init__(self, dataset):
-        self.set_tree(dataset)
-        self.set_map(dataset)
+    def __init__(self, set):
+        self.settings = set
+        self.set_tree(self.settings)
+        self.set_map(self.settings)
         self.set_XML_manager()
-        self.settings = None
 
-    def set_tree(self, dataset):
-        if dataset == 'big':
-            tree = utils.read_tree('../Datasets/5_Genomes/tree.nwk', "newick")
-            self.tree = tree
-        elif dataset == 'tiny':
-            tree = utils.read_tree('../Datasets/3_Genomes/tree.nwk', "newick")
-            self.tree = tree
-        elif dataset == 'huge':
-            tree = utils.read_tree('../Datasets/20_Genomes/tree.nwk', "newick")
-            self.tree = tree
+    def set_tree(self, set):
+        tree = utils.read_tree(set.datasets_path + set.folder_name + '/tree.nwk', "newick")
+        self.tree = tree
 
-        elif dataset == 'insane':
-            tree = utils.read_tree('../Datasets/QfO/tree.nwk', "newick")
-            self.tree = tree
-            pass
-        else:
-            raise Exception('dataset unknown')
-
-    def set_map(self, dataset):
-        file_map = Filemap(dataset)
+    def set_map(self, set):
+        file_map = Filemap(set)
         self.filemap = file_map
 
     def set_XML_manager(self):
@@ -247,9 +230,9 @@ class XML_manager(object):
                 no = log10(gene.speciesId)
                 genexml.set("protId", gene.species[0] + (4 - trunc(no)) * '0' + str(gene.speciesId))
 
-    def fill_species_xml_with_mapping(self):
+    def fill_species_xml_with_mapping(self,settings):
         hash_mapping = {}
-        data = np.genfromtxt('../Datasets/QfO/ID_mapping.txt', dtype=None , delimiter="", usecols=(0,1,2))
+        data = np.genfromtxt(settings.datasets_path + settings.folder_name + '/ID_mapping.txt', dtype=None , delimiter="", usecols=(0,1,2))
         for line in data:
             species_name = line[0].decode(encoding='UTF-8',errors='strict')
             try :
@@ -284,8 +267,9 @@ class XML_manager(object):
     def finish_xml_and_export(self, set):
         # Add each <species> into orthoXML
         treeOflife = self.treeOfLife
-        if set.dataset == "insane":
-            self.fill_species_xml_with_mapping()
+
+        if set.mapping:
+            self.fill_species_xml_with_mapping(set)
         else:
             self.fill_species_xml()
         self.replace_xml_hog_with_gene()
@@ -293,7 +277,7 @@ class XML_manager(object):
         self.add_HOGs_ID()
         utils.indent(treeOflife)
         tree = etree.ElementTree(treeOflife)
-        tree.write(set.prefix_path + set.dir_name_param + "/" + set.xml_name_param, xml_declaration=True, encoding='utf-8', method="xml")
+        tree.write(set.output_path + "/" + set.output_name, xml_declaration=True, encoding='utf-8', method="xml")
 
     def replace_xml_hog_with_gene(self):
         [utils.replacesolohog(b) for b in self.treeOfLife.iterfind(".//ortholGroup[@genehog]")]
@@ -309,15 +293,23 @@ class XML_manager(object):
 
 
 class Filemap(object):
-    def __init__(self, dataset):
-        self.dataset = dataset
-        self.prefix_display = '../5_Genomes/'
-        self.suffix = '.orth.txt'
+    def __init__(self, set):
+        self.settings = set
         self.genome_pairs_data = []
-        self.Folder, self.genomeSize, self.prefix = self.set_dataset(dataset)
+        self.Folder, self.genomeSize, self.pairwise_path = self.set_dataset(self.settings)
 
-    def set_dataset(self, dataset):
+    def set_dataset(self, set):
 
+        if self.settings.type_folder == "standalone":
+            Folder = None
+            genomeSize = utils.get_genomes_size(set.datasets_path + set.folder_name + '/genomes_sizes.txt')
+            pairwise_path = set.datasets_path + set.folder_name + '/PairwiseOrthologs/'
+            return Folder, genomeSize, pairwise_path
+
+        elif self.settings.type_folder == "oma":
+            sys.exit("The file mapping for oma type of dataset is not yet implemented.")
+
+    '''
         if dataset == 'big':
             # Mapping Files, only for testing genomes in my files !!
             CANFA = ['PANTR', 'RATNO', 'GORGO']
@@ -352,6 +344,7 @@ class Filemap(object):
             genomeSize = utils.get_genomes_size('../Datasets/QfO/genomes_sizes.txt')
             prefix = '../Datasets/QfO/PairwiseOrthologs/'
             return Folder, genomeSize, prefix
+    '''
 
     def genome_order(self, genome1, genome2):
         if genome2.species[0] not in self.Folder[genome1.species[0]]:
@@ -374,6 +367,15 @@ class Filemap(object):
 
 
     def loadfile(self, genome1, genome2):
+        if self.settings.type_folder == "standalone":
+            files = utils.get_list_files(self.settings.datasets_path + self.settings.folder_name +'/PairwiseOrthologs')
+            genome1, genome2, inverted = self.genome_order_same_folder(genome1, genome2, files)
+            filename = self.pairwise_path + genome1.species[0] + '-' + genome2.species[0] + self.settings.extension
+
+        elif self.settings.type_folder == "oma":
+            sys.exit("The file loading for oma type of dataset is not yet implemented.")
+
+        '''
         if self.dataset == "huge":
             files = utils.get_list_files('../Datasets/20_Genomes/PairwiseOrthologs')
             genome1, genome2, inverted = self.genome_order_same_folder(genome1, genome2, files)
@@ -388,12 +390,14 @@ class Filemap(object):
             genome1, genome2, inverted = self.genome_order(genome1, genome2)
             filename = self.prefix + genome1.species[0] + '/' + genome2.species[0] + self.suffix
             usec = (0, 1, 3)
+
+        '''
         for pairdata in self.genome_pairs_data:
             if genome1.species[0] in pairdata['genome'] and genome2.species[0] in pairdata['genome']:
                 print('file between', genome1.species[0], "and", genome2.species[0], 'already exist')
                 return pairdata['data']
 
-        data = np.genfromtxt(filename, dtype=None, comments="#", delimiter="", usecols=usec,
+        data = np.genfromtxt(filename, dtype=None, comments="#", delimiter="", usecols=(0,1),
                              names=['gene1', 'gene2', 'type'])
         pairs = {'data': data, 'genome': [genome1, genome2]}
         self.genome_pairs_data.append(pairs)
@@ -474,7 +478,7 @@ class Merge_ancestral(object):
 
         # Find all HOGs relations in the matrix, replace with 1 the significant relations and with 0 for the unrevelant
         start_time = time.time()
-        self.clean_graph(self.hierarchical_merger.settings.param_merge)
+        self.clean_graph("50")
         print("\t * %s seconds --" % (time.time() - start_time)+ ' Cleaning the graph')
 
 
@@ -560,6 +564,7 @@ class Merge_ancestral(object):
 
 
     def clean_graph(self, threshold):
+        threshold =int(threshold)
         for (h1, h2), orthorel in self.orthograph.items():
             score = utils.compute_score_merging(self,h1,h2, orthorel)
             if score >= threshold:
