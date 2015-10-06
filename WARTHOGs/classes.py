@@ -23,6 +23,18 @@ def reset_uniqueId():
 class Settings(object):
 
     def __init__(self):
+        self.dataset_folders = None
+        self.folder_name = None
+        self.type_folder = None
+        self.mapping = False
+        self.extension = ".txt"
+        self.method = None
+        self.param = None
+        self.result_path = "../Results/"
+        self.datasets_path = "../Datasets/"
+        self.output_path = None
+        self.output_name = None
+
         self.dir_name_param = None
         self.xml_name_param = None
         self.param_merge = None
