@@ -44,7 +44,25 @@ def main(argv):
                   "\n     \033[1m-e\033[0m  (optional)    Extension of the pairwise files, by default: '.txt'.\n"
                   '\n     \033[1m-m\033[0m  (optional)    If used, the ID_mapping file will be used to map OMAId and external Id.\n'
                   '\n  \033[1mIMPORTANT\033[0m \n'
-                  '\n  Make sure you respected the folder structures and files formats !!! \n')
+                  '\n  Make sure you respected the following folder structures and files formats !!! ( "5LOID" = 5 letters ID for OMA species) \n'
+                  '\n   Datasets/ \n'
+                  '\n       Example_standalone/  -- output from the oma standalone \n'
+                  '\n           genomes_sizes.txt -- each lines contain "5LOID number_of_genes"\n'
+                  '\n           tree.nwk\n'
+                  '\n           ID_Mapping.txt (optional) -- each lines contain "5LOID OMAId ExternalId"\n'
+                  '\n           PairwiseOrthologs/\n'
+                  '\n               5LOID-5LOID.txt\n'
+                  '\n                   ...\n'
+                  '\n       Example_OMA/ -- output from the main oma pipeline \n'
+                  '\n           genomes_sizes.txt -- each lines contain "5LOID number_of_genes" \n'
+                  '\n           tree.nwk\n'
+                  '\n           ID_Mapping.txt (optional) -- each lines contain "5LOID OMAId ExternalId"\n'
+                  '\n           5LOID/\n'
+                  '\n               5LOID.orth.txt\n'
+                  '\n                    ...\n'
+
+
+                  )
             sys.exit()
 
         elif opt in ("-d"):
@@ -89,14 +107,15 @@ def main(argv):
     if set.type_folder == None:
         sys.exit("No type of dataset selected. Use -t to select either 'standalone' or 'oma'.")
     else:
-        if set.type_folder == "pair":
+        if set.type_folder == "standalone":
             if not os.path.isdir(set.datasets_path + set.folder_name + "/PairwiseOrthologs/"):
                 sys.exit("No PairwiseOrthologs folder found inside the " +set.folder_name + " folder.")
+
     if not os.path.isfile(set.datasets_path + set.folder_name +"/tree.nwk"):
         sys.exit("No tree.nwk file found for the " +set.folder_name + " folder.")
 
     if not os.path.isfile(set.datasets_path + set.folder_name + "/genomes_sizes.txt"):
-        sys.exit("No genomes_size.txt file found inside the " +set.folder_name + " folder.")
+        sys.exit("No genomes_sizes.txt file found inside the " +set.folder_name + " folder.")
 
     # Check if there is the mapping file if mapping is selected
     if set.mapping == True:
@@ -110,12 +129,14 @@ def main(argv):
         if set.method == "pair":
             if set.param == None:
                 sys.exit("No parameter given. Use -p to assign the Tmerge.")
+        elif set.method == "update":
+            sys.exit("The update method is not yet implemented")
 
     classes.reset_uniqueId()
 
     set.output_name = "OMA_HOGs_" + str(set.folder_name) + "_" + str(set.method) + "_"
-    if set.method != "pair":
-        set.output_name = set.output_name + set.param + "_"
+    if set.method == "pair":
+        set.output_name = set.output_name + str(set.param) + "_"
     set.output_name = set.output_name + str(d.hour) + 'h' + str(d.minute) + 'm' + str(d.second) + '.xml'
 
 

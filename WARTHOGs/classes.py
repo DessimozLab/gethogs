@@ -1,7 +1,7 @@
 import re
 
 __author__ = 'traincm'
-
+import sys
 import weakref
 from math import *
 import utils as utils
@@ -307,44 +307,11 @@ class Filemap(object):
             return Folder, genomeSize, pairwise_path
 
         elif self.settings.type_folder == "oma":
-            sys.exit("The file mapping for oma type of dataset is not yet implemented.")
+            genomeSize = utils.get_genomes_size(set.datasets_path + set.folder_name + '/genomes_sizes.txt')
+            pairwise_path = set.datasets_path + set.folder_name + '/'
+            Folder = utils.getFolderStructureDict(pairwise_path)
+            return Folder, genomeSize, pairwise_path
 
-    '''
-        if dataset == 'big':
-            # Mapping Files, only for testing genomes in my files !!
-            CANFA = ['PANTR', 'RATNO', 'GORGO']
-            HUMAN = ['CANFA', 'MOUSE', 'PANTR', 'RATNO', 'GORGO']
-            MOUSE = ['CANFA', 'PANTR', 'RATNO', 'GORGO']
-            PANTR = ['GORGO']
-            RATNO = ['PANTR', 'GORGO']
-            Folder = {'CANFA': CANFA, 'HUMAN': HUMAN, 'MOUSE': MOUSE, 'PANTR': PANTR, 'RATNO': RATNO, 'GORGO': []}
-            genomeSize = {'CANFA': 20610, 'HUMAN': 31589, 'MOUSE': 25724, 'PANTR': 18936, 'RATNO': 22690,
-                          'GORGO': 21822}
-            prefix = '../Datasets/5_Genomes/'
-            return Folder, genomeSize, prefix
-        elif dataset == 'tiny':
-            HUMAN = ['MOUSE', 'PANTR', 'RATNO']
-            MOUSE = ['RATNO']
-            PANTR = ['MOUSE', 'RATNO']
-            Folder = {'HUMAN': HUMAN, 'MOUSE': MOUSE, 'PANTR': PANTR, 'RATNO': []}
-            genomeSize = {'HUMAN': 3, 'MOUSE': 3, 'PANTR': 2, 'RATNO': 2}
-            prefix = '../Datasets/3_Genomes/'
-            return Folder, genomeSize, prefix
-
-        elif dataset == 'huge':
-            Folder = None
-            self.suffix = ".txt"
-            genomeSize = {'HUMAN': 31589, 'APIME': 10378, 'BOVIN': 20310, 'CAEEL': 20800, 'CANFA': 20610, 'CHICK': 15504, 'DROME': 14506, 'GORGO': 21822, 'HORSE': 20405, 'MOUSE': 25724, 'NEUCR': 7569, 'PANTR': 18936, 'PENCW': 12770, 'PLAF7': 5503, 'RATNO': 22690, 'RHIOR': 16831, 'SCHPO': 5087, 'TETNG': 20020, 'XENTR': 19291, 'YEAST': 6352}
-            prefix = '../Datasets/20_Genomes/PairwiseOrthologs/'
-            return Folder, genomeSize, prefix
-
-        elif dataset == 'insane':
-            Folder = None
-            self.suffix = ".txt"
-            genomeSize = utils.get_genomes_size('../Datasets/QfO/genomes_sizes.txt')
-            prefix = '../Datasets/QfO/PairwiseOrthologs/'
-            return Folder, genomeSize, prefix
-    '''
 
     def genome_order(self, genome1, genome2):
         if genome2.species[0] not in self.Folder[genome1.species[0]]:
@@ -373,25 +340,9 @@ class Filemap(object):
             filename = self.pairwise_path + genome1.species[0] + '-' + genome2.species[0] + self.settings.extension
 
         elif self.settings.type_folder == "oma":
-            sys.exit("The file loading for oma type of dataset is not yet implemented.")
-
-        '''
-        if self.dataset == "huge":
-            files = utils.get_list_files('../Datasets/20_Genomes/PairwiseOrthologs')
-            genome1, genome2, inverted = self.genome_order_same_folder(genome1, genome2, files)
-            filename = self.prefix + genome1.species[0] + '-' + genome2.species[0] + self.suffix
-            usec = (0, 1, 4)
-        elif self.dataset == "insane":
-            files = utils.get_list_files('../Datasets/QfO/PairwiseOrthologs')
-            genome1, genome2, inverted = self.genome_order_same_folder(genome1, genome2, files)
-            filename = self.prefix + genome1.species[0] + '-' + genome2.species[0] + self.suffix
-            usec = (0, 1, 3)
-        else:
             genome1, genome2, inverted = self.genome_order(genome1, genome2)
-            filename = self.prefix + genome1.species[0] + '/' + genome2.species[0] + self.suffix
-            usec = (0, 1, 3)
+            filename = self.pairwise_path + genome1.species[0] + '/' + genome2.species[0] + self.settings.extension
 
-        '''
         for pairdata in self.genome_pairs_data:
             if genome1.species[0] in pairdata['genome'] and genome2.species[0] in pairdata['genome']:
                 print('file between', genome1.species[0], "and", genome2.species[0], 'already exist')
@@ -403,11 +354,6 @@ class Filemap(object):
         self.genome_pairs_data.append(pairs)
         return pairs['data'], inverted
 
-    def loadfile_light(self, genome1, genome2):
-        filename = self.prefix_display + genome1 + '/' + genome2 + self.suffix
-        data = np.genfromtxt(filename, dtype=None, delimiter="", usecols=(0, 1), names=['gene1', 'gene2'])
-        pairs = {'data': data, 'genome1': genome1, 'genome2': genome2}
-        return pairs
 
     def sort_genes(self, dict_data, data, genome1, genome2):
         try:
@@ -426,12 +372,7 @@ class Filemap(object):
             dict_data[genome2].append(genome2 + (4 - trunc(no2)) * '0' + str(raw['gene2']))
         return dict_data
 
-    def load_all_genome_light(self, couple_genome):
-        data_adrian = {'HUMAN': [], 'PANTR': [], 'MOUSE': [], 'CANFA': [], 'GORGO': [], 'RATNO': []}
-        for couple in couple_genome:
-            pair = self.loadfile_light(couple[0], couple[1])
-            data_adrian = self.sort_genes(data_adrian, pair, couple[0], couple[1])
-        return data_adrian
+
 
     def where_genome_is(self, genome_name):
         match_genome = []
@@ -478,7 +419,14 @@ class Merge_ancestral(object):
 
         # Find all HOGs relations in the matrix, replace with 1 the significant relations and with 0 for the unrevelant
         start_time = time.time()
-        self.clean_graph("50")
+        method = self.hierarchical_merger.settings.method
+
+        if method == "pair":
+                self.clean_graph(self.hierarchical_merger.settings.param)
+
+        elif method == "update":
+            sys.exit("The update method is not yet implemented")
+
         print("\t * %s seconds --" % (time.time() - start_time)+ ' Cleaning the graph')
 
 

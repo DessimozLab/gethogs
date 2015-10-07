@@ -7,6 +7,7 @@ from Bio import Phylo
 from os import listdir
 from os.path import isfile, join
 import numpy as np
+import os
 
 def get_list_files(mypath):
     onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
@@ -62,7 +63,28 @@ def replacesolohog(solohog):
 def delsolohog(solohog):
     solohog.getparent().remove(solohog)
 
+def get_genomes_size(filepath):
+    data = np.genfromtxt(filepath, dtype=None , delimiter="", usecols=(0,1))
+    genome_size = {}
+    for pairs in data:
+        genome = pairs[0].decode(encoding='UTF-8',errors='strict')
+        genome_size[genome]=pairs[1]
+    return genome_size
 
+
+def getFolderStructureDict(folder_path):
+    data = np.genfromtxt(folder_path + "genomes_sizes.txt", dtype=None , delimiter="", usecols=(0,1))
+    folder_dict = {}
+    for pairs in data:
+        folder_dict[pairs[0].decode(encoding='UTF-8',errors='strict')]= []
+    for folder_name in os.listdir(folder_path):
+        if os.path.isdir(os.path.join(folder_path, folder_name)) and len(folder_name) == 5:
+            list_files = []
+            files = get_list_files(folder_path + folder_name)
+            for file in files:
+                list_files.append(file[:5])
+            folder_dict[folder_name] = list_files
+    return folder_dict
 
 def indent(elem, level=0):
     i = "\n" + level*"  "
