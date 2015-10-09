@@ -130,12 +130,16 @@ def main(argv):
             if set.param == None:
                 sys.exit("No parameter given. Use -p to assign the Tmerge.")
         elif set.method == "update":
-            sys.exit("The update method is not yet implemented")
+            if set.param == None:
+                sys.exit("No parameter given. Use -p to assign the Tmerge.")
+            print("You are using a dev version of the update method.")
 
     classes.reset_uniqueId()
 
     set.output_name = "OMA_HOGs_" + str(set.folder_name) + "_" + str(set.method) + "_"
     if set.method == "pair":
+        set.output_name = set.output_name + str(set.param) + "_"
+    if set.method == "update":
         set.output_name = set.output_name + str(set.param) + "_"
     set.output_name = set.output_name + str(d.hour) + 'h' + str(d.minute) + 'm' + str(d.second) + '.xml'
 
@@ -157,21 +161,6 @@ def main(argv):
     print("--- %s seconds ---" % (time.time() - start_time))
     ############################
 
-
-'''
-    print(set.dataset_folders)
-    print(set.folder_name)
-    print(set.mapping)
-    print(set.method)
-    print(set.param)
-    print(set.extension)
-    print(set.type_folder)
-
-
-
-
-
-    '''
 
 
 

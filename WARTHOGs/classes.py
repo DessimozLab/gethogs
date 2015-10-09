@@ -9,6 +9,7 @@ import numpy as np
 import lxml.etree as etree
 import time as time
 import unionfind as UNION
+import itertools
 
 
 # **********************************  GENE, GENOME, HOG  **********************************************
@@ -127,7 +128,7 @@ class AncestralGenome(Genome):
         start_time = time.time()
         e = Merge_ancestral(self, self.children, hierarchical_merger)
         self.HOGS = e.newHOGs
-        print("\t - %s seconds " % (time.time() - start_time) + str(self.children[0]) + "&" + str(self.children[1]) +' MERGED. \n' )
+        print("\t - %s seconds " % (time.time() - start_time) + ' Ancestral genome reconstructed. \n' )
 
 
 
@@ -404,11 +405,10 @@ class Merge_ancestral(object):
 
 
     def do_the_merge(self):
-        print("-- Merging of ")
-        for genome in self.children:
-            print("-",str(genome))
+        print("-- Merging of ", self.newgenome.get_name())
 
         # Find Orthologous relations between all genes of all species
+        start_time = time.time()
         already_aligned= {}
         for g1 in self.children:
             for g2 in self.children:
@@ -416,25 +416,37 @@ class Merge_ancestral(object):
                     if g2 not in already_aligned:
                         self.find_ortho_relations(g1, g2)
                         already_aligned[g1]=g2
+        print("\t * %s seconds --" % (time.time() - start_time)+ ' Children genomes aligned.')
 
         # Find all HOGs relations in the matrix, replace with 1 the significant relations and with 0 for the unrevelant
-        start_time = time.time()
+
         method = self.hierarchical_merger.settings.method
 
         if method == "pair":
-                self.clean_graph(self.hierarchical_merger.settings.param)
+
+            start_time = time.time()
+            self.clean_graph_pair(self.hierarchical_merger.settings.param)
+            print("\t * %s seconds --" % (time.time() - start_time)+ ' Cleaning the graph')
+
+            start_time = time.time()
+            self.search_CC()
+            print("\t * %s seconds --" % (time.time() - start_time)+ ' Searching CCs')
 
         elif method == "update":
-            sys.exit("The update method is not yet implemented")
 
-        print("\t * %s seconds --" % (time.time() - start_time)+ ' Cleaning the graph')
+            start_time = time.time()
+            self.search_CC()
+            self.hogComputed = [] # Because we don't care here
+            print("\t * %s seconds --" % (time.time() - start_time)+ ' Searching CCs before cleaning')
+
+            start_time = time.time()
+            self.clean_graph_update(self.hierarchical_merger.settings.param)
+            print("\t * %s seconds --" % (time.time() - start_time)+ ' Cleaning the graph')
+            #sys.exit("The update method is not yet implemented")
+
 
 
         # Cluster HOGs of a same connected component and merge them in a new HOG
-        start_time = time.time()
-        self.search_CC()
-        print("\t * %s seconds --" % (time.time() - start_time)+ ' Searching CCs')
-
         start_time = time.time()
         self.CC_to_HOG()
         print("\t * %s seconds --" % (time.time() - start_time)+ ' Merging HOGs')
@@ -449,11 +461,6 @@ class Merge_ancestral(object):
         list_hogs_not_computed = list(set(list_hogs) - set(self.hogComputed))
         self.updatesoloHOGs(list_hogs_not_computed)
         print("\t * %s seconds --" % (time.time() - start_time) + ' Updating soloHOGs.')
-
-
-
-
-
 
 
     def CC_to_HOG(self):
@@ -489,10 +496,6 @@ class Merge_ancestral(object):
             newHOG.updateGenometoAllGenes(self.newgenome)
             self.newHOGs.append(newHOG)
 
-
-
-
-
     def updatesoloHOGs(self, list_hog):
         for oldHog in list_hog:
             oldHog.updateGenometoAllGenes(self.newgenome)
@@ -509,16 +512,38 @@ class Merge_ancestral(object):
         self.hogComputed = set(self.hogComputed)
         self.connectedComponents = connectedComponents.get_components()
 
-
-
-    def clean_graph(self, threshold):
+    def clean_graph_pair(self, threshold):
         threshold =int(threshold)
         for (h1, h2), orthorel in self.orthograph.items():
-            score = utils.compute_score_merging(self,h1,h2, orthorel)
+            score = utils.compute_score_merging(h1,h2, orthorel)
             if score >= threshold:
                 self.orthograph[(h1, h2)] = 1
             else:
                 self.orthograph[(h1, h2)] = 0
+
+    def clean_graph_update(self, threshold):
+        CCs = list()
+
+        for con in self.connectedComponents:
+            start_time = time.time()
+            p = Pseudo_CC(con, self.orthograph)
+            max, max_pr = p.find_max_score()
+
+            while max >= threshold:
+                max, max_pr = p.find_max_score()
+                p.merge_nodes(max_pr)
+                modified_nodes = p.found_modified_nodes(max_pr[0], max_pr[1])
+                p.update_subgraph(self.orthograph, modified_nodes)
+                max, max_pr = p.find_max_score()
+            for node in p.nodes:
+                if node.type == "composed":
+                    CCs.append(set(node.hogs))
+                    for hog in node.hogs:
+                        self.hogComputed.append(hog)
+            print("\t - %s seconds " % (time.time() - start_time) +  'CC cleaned.\n' )
+
+        self.connectedComponents = CCs
+
 
     def find_ortho_relations(self, genome1, genome2):
         for i in genome1.species:
@@ -529,7 +554,6 @@ class Merge_ancestral(object):
 
     def align_two_specie_fill_graph(self, actual_genome1, actual_genome2, genome1, genome2):
         data, inverted = self.hierarchical_merger.filemap.loadfile(actual_genome1, actual_genome2)
-        start_time = time.time()
         try:
             numberOfOrthologs = len(data['gene1'])
             for i in range(numberOfOrthologs):
@@ -539,7 +563,6 @@ class Merge_ancestral(object):
         except TypeError:
             raw = data
             self.find_hog_fill_graph(inverted, actual_genome1, actual_genome2, raw , genome1, genome2)
-        print("\t * %s seconds -- " % (time.time() - start_time)+ str(actual_genome1)+ ' & '+ str(actual_genome2) + " aligned.")
 
     def find_hog_fill_graph(self, inverted, actual_genome1, actual_genome2, raw, genome1, genome2):
 
@@ -550,9 +573,6 @@ class Merge_ancestral(object):
             hogOfgene1 = actual_genome1.get_gene_by_nr(raw['gene1']).get_hog(genome1)
             hogOfgene2 = actual_genome2.get_gene_by_nr(raw['gene2']).get_hog(genome2)
 
-
-
-
         try:
             self.orthograph[(hogOfgene1,hogOfgene2)] += 1
         except KeyError:
@@ -560,3 +580,67 @@ class Merge_ancestral(object):
                 self.orthograph[(hogOfgene2,hogOfgene1)] += 1
             except KeyError:
                 self.orthograph[(hogOfgene1,hogOfgene2)] = 1
+
+
+class Pseudo_CC(object):
+
+    def __init__(self, CC, orthograph):
+        self.HOGs = CC
+        self.nodes = self.create_nodes_list(self.HOGs)
+        self.sub_orthograph = []
+        self.sub_orthograph = self.update_subgraph(orthograph, self.nodes)
+
+    def update_subgraph(self, orthograph, modified_nodes):
+        comb_nodes = itertools.combinations(modified_nodes, 2)
+        for i in comb_nodes:
+            try:
+                self.sub_orthograph.append((i[0],i[1],utils.compute_score_merging_pseudo_nodes(i[0],i[1], orthograph)))
+            except KeyError:
+                try:
+                    self.sub_orthograph.append((i[0],i[1],utils.compute_score_merging_pseudo_nodes(i[1],i[0], orthograph)))
+                except KeyError:
+                    pass
+
+
+    def merge_nodes(self, sub_orthograph_pr):
+        merged_hogs = []
+        [ merged_hogs.append(f) for f in sub_orthograph_pr[0].hogs ]
+        [ merged_hogs.append(f) for f in sub_orthograph_pr[1].hogs ]
+        merged_node = Pseudo_node("composed", merged_hogs )
+        self.nodes.remove(sub_orthograph_pr[0])
+        self.nodes.remove(sub_orthograph_pr[1])
+        self.nodes.append(merged_node)
+
+    def found_modified_nodes(self, node1, node2):
+        modified_nodes = []
+        for node_pr in self.sub_orthograph:
+            if node1 in node_pr:
+                modified_nodes.append(node_pr[0])
+                modified_nodes.append(node_pr[1])
+            if node2 in node_pr:
+                modified_nodes.append(node_pr[0])
+                modified_nodes.append(node_pr[1])
+        modified_nodes = set(modified_nodes)
+        return modified_nodes
+
+    def create_nodes_list(self, list_HOGs):
+        nodes = []
+        for hog in list_HOGs:
+            node = Pseudo_node("simple",[hog])
+            nodes.append(node)
+        return nodes
+
+    def find_max_score(self):
+        max = 0
+        max_pr = None
+        for pr in self.sub_orthograph:
+            if pr[2] > max:
+                max = pr[2]
+                max_pr = pr
+        return  max, max_pr
+
+
+class Pseudo_node(object):
+    def __init__(self, type, hogs):
+        self.type = type
+        self.hogs = hogs

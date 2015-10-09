@@ -104,7 +104,7 @@ def indent(elem, level=0):
 
 
 
-def compute_score_merging(self, hog1, hog2, orthorel):
+def compute_score_merging(hog1, hog2, orthorel):
     total_relations = 0
     nbr_genes_hog1 = len(hog1.genes)
     nbr_genes_hog2 = len(hog2.genes)
@@ -114,6 +114,36 @@ def compute_score_merging(self, hog1, hog2, orthorel):
     score = float(total_relations*100)/float(maximum_relations*100)
     score = score * 100
     return score
+
+
+def compute_score_merging_pseudo_nodes(node1, node2, orthograph):
+    number_pairwise_relations = get_all_pr_between_two_set_of_HOGs(orthograph, node1.hogs, node2.hogs)
+    nbr_genes_hog1 = 0
+    nbr_genes_hog2 = 0
+    for hog1 in node1.hogs:
+        nbr_genes_hog1 += len(hog1.genes)
+    for hog2 in node2.hogs:
+        nbr_genes_hog2 += len(hog2.genes)
+    maximum_relations = nbr_genes_hog1 * nbr_genes_hog2
+    score = float(number_pairwise_relations*100)/float(maximum_relations*100)
+    score = score * 100
+    return score
+
+
+def get_all_pr_between_two_set_of_HOGs(orthograph, list_hogs1, list_hogs2):
+    pairwise_relations = 0
+    for hog1 in list_hogs1:
+        for hog2 in list_hogs2:
+            try:
+                pairwise_relations += orthograph[(hog1,hog2)]
+            except KeyError:
+                try:
+                    pairwise_relations += orthograph[(hog2,hog1)]
+                except KeyError:
+                    pass
+    return pairwise_relations
+
+
 
 def get_genomes_size(filepath):
     data = np.genfromtxt(filepath, dtype=None , delimiter="", usecols=(0,1))
