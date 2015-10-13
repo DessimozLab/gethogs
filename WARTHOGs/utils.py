@@ -8,6 +8,7 @@ from os import listdir
 from os.path import isfile, join
 import numpy as np
 import os
+import cPickle
 
 def get_list_files(mypath):
     onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]

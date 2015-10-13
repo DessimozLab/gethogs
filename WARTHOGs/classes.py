@@ -1,3 +1,4 @@
+import cPickle
 import re
 
 __author__ = 'traincm'
@@ -126,11 +127,16 @@ class AncestralGenome(Genome):
             for i in range(len(chi.species)):
                 self.species.append(chi.species[i])
         start_time = time.time()
+        snap = Snapshot(self)
         e = Merge_ancestral(self, self.children, hierarchical_merger)
         self.HOGS = e.newHOGs
+        cPickle.dump(snap, file(snap.taxonomic_range + '.pickle','w'))
+        data2 = cPickle.load(file(snap.taxonomic_range + '.pickle'))
+        [printprint(f) for f in data2.children]
         print("\t - %s seconds " % (time.time() - start_time) + ' Ancestral genome reconstructed. \n' )
 
-
+def printprint(f):
+    print(f)
 
 class HOG(object):
     IdCount = 0
@@ -193,13 +199,19 @@ class Hierarchical_merger(object):
     def set_XML_manager(self):
         self.XML_manager = XML_manager()
 
+
     def recursive_traversal(self, node):
+
+
         if node.name:
             node.genome = utils.create_actualGenome(node.name, self)
         else:
             for child in node:
                 self.recursive_traversal(child)
+
             node.genome = AncestralGenome(node, self)
+            [exit("Traversal stopped at SCHPO") for  f in node if f.name =="SCHPO"]
+
 
 
 class XML_manager(object):
@@ -525,23 +537,22 @@ class Merge_ancestral(object):
         CCs = list()
 
         for con in self.connectedComponents:
-            start_time = time.time()
+
             p = Pseudo_CC(con, self.orthograph)
             max, max_pr = p.find_max_score()
-
             while max >= threshold:
-                max, max_pr = p.find_max_score()
-                p.merge_nodes(max_pr)
-                modified_nodes = p.found_modified_nodes(max_pr[0], max_pr[1])
-                p.update_subgraph(self.orthograph, modified_nodes)
+                merged_node = p.merge_nodes(max_pr)
+                node1 = max_pr[0]
+                node2 = max_pr[1]
+                p.sub_orthograph.remove(max_pr)
+                modified_nodes = list(p.found_modified_nodes(node1, node2))
+                p.update_subgraph(self.orthograph, modified_nodes, merged_node)
                 max, max_pr = p.find_max_score()
             for node in p.nodes:
                 if node.type == "composed":
                     CCs.append(set(node.hogs))
                     for hog in node.hogs:
                         self.hogComputed.append(hog)
-            print("\t - %s seconds " % (time.time() - start_time) +  'CC cleaned.\n' )
-
         self.connectedComponents = CCs
 
 
@@ -587,17 +598,32 @@ class Pseudo_CC(object):
     def __init__(self, CC, orthograph):
         self.HOGs = CC
         self.nodes = self.create_nodes_list(self.HOGs)
-        self.sub_orthograph = []
-        self.sub_orthograph = self.update_subgraph(orthograph, self.nodes)
+        self.sub_orthograph = self.create_subgraph(orthograph)
 
-    def update_subgraph(self, orthograph, modified_nodes):
-        comb_nodes = itertools.combinations(modified_nodes, 2)
+    def create_subgraph(self, orthograph):
+        sub_orthograph = []
+        comb_nodes = itertools.combinations(self.nodes, 2)
         for i in comb_nodes:
             try:
-                self.sub_orthograph.append((i[0],i[1],utils.compute_score_merging_pseudo_nodes(i[0],i[1], orthograph)))
+                score = utils.compute_score_merging_pseudo_nodes(i[0],i[1], orthograph)
+                if score > 0:
+                    sub_orthograph.append((i[0],i[1],score ))
             except KeyError:
                 try:
-                    self.sub_orthograph.append((i[0],i[1],utils.compute_score_merging_pseudo_nodes(i[1],i[0], orthograph)))
+                    score = utils.compute_score_merging_pseudo_nodes(i[1],i[0], orthograph)
+                    if score > 0:
+                        sub_orthograph.append((i[0],i[1],score))
+                except KeyError:
+                    pass
+        return sub_orthograph
+
+    def update_subgraph(self, orthograph, modified_nodes, merged_node):
+        for modif_node in modified_nodes:
+            try:
+                self.sub_orthograph.append((merged_node,modif_node,utils.compute_score_merging_pseudo_nodes(merged_node,modif_node, orthograph)))
+            except KeyError:
+                try:
+                    self.sub_orthograph.append((merged_node,modif_node,utils.compute_score_merging_pseudo_nodes(modif_node,merged_node, orthograph)))
                 except KeyError:
                     pass
 
@@ -610,18 +636,27 @@ class Pseudo_CC(object):
         self.nodes.remove(sub_orthograph_pr[0])
         self.nodes.remove(sub_orthograph_pr[1])
         self.nodes.append(merged_node)
+        return merged_node
 
     def found_modified_nodes(self, node1, node2):
-        modified_nodes = []
-        for node_pr in self.sub_orthograph:
+        modified_nodes = [node1,node2]
+        nodes_pr = []
+        for pr in self.sub_orthograph:
+            nodes_pr.append(pr)
+        for node_pr in nodes_pr:
             if node1 in node_pr:
                 modified_nodes.append(node_pr[0])
                 modified_nodes.append(node_pr[1])
+                self.sub_orthograph.remove(node_pr)
             if node2 in node_pr:
                 modified_nodes.append(node_pr[0])
                 modified_nodes.append(node_pr[1])
+                self.sub_orthograph.remove(node_pr)
         modified_nodes = set(modified_nodes)
+        modified_nodes.remove(node1)
+        modified_nodes.remove(node2)
         return modified_nodes
+
 
     def create_nodes_list(self, list_HOGs):
         nodes = []
@@ -644,3 +679,18 @@ class Pseudo_node(object):
     def __init__(self, type, hogs):
         self.type = type
         self.hogs = hogs
+
+
+class Snapshot(object):
+    def __init__(self, ancestral_genome):
+        self.taxonomic_range = ancestral_genome.get_name()        # taxonomic range
+        self.children = self.set_name(ancestral_genome)                 # list of children
+        #self.graph = None                   # list of list(hogi, hogj, edge)
+        #self.CC_before_cleaning = None      # list of (list of HOGs)
+        #self.CC_after_cleaning = None       # list of CCs
+
+    def set_name(self, ag):
+        children = []
+        for child in ag.children:
+            children.append(child.get_name()  )
+        return children
