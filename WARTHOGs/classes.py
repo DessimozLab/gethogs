@@ -127,16 +127,11 @@ class AncestralGenome(Genome):
             for i in range(len(chi.species)):
                 self.species.append(chi.species[i])
         start_time = time.time()
-        snap = Snapshot(self)
+        self.snap = Snapshot(self)
         e = Merge_ancestral(self, self.children, hierarchical_merger)
         self.HOGS = e.newHOGs
-        cPickle.dump(snap, file(snap.taxonomic_range + '.pickle','w'))
-        data2 = cPickle.load(file(snap.taxonomic_range + '.pickle'))
-        [printprint(f) for f in data2.children]
         print("\t - %s seconds " % (time.time() - start_time) + ' Ancestral genome reconstructed. \n' )
 
-def printprint(f):
-    print(f)
 
 class HOG(object):
     IdCount = 0
@@ -161,6 +156,18 @@ class HOG(object):
         for genome, genes in self.genes.items():
             for gene in genes:
                 gene.hog[GENOME] = self
+
+    def print_HOG(self):
+        print " - - - - - - -"
+        print "|HOG:", self
+        print "|Id:", self.id
+        print"|\t genes:"
+        for species, gen in self.genes.items():
+            print "|\t \t species", species.species
+            for gene in gen:
+                print "|\t\t", gene.speciesId
+        print " - - - - - - -"
+
 
 
 class Gene(object):
@@ -202,7 +209,6 @@ class Hierarchical_merger(object):
 
     def recursive_traversal(self, node):
 
-
         if node.name:
             node.genome = utils.create_actualGenome(node.name, self)
         else:
@@ -210,9 +216,12 @@ class Hierarchical_merger(object):
                 self.recursive_traversal(child)
 
             node.genome = AncestralGenome(node, self)
-            [exit("Traversal stopped at SCHPO") for  f in node if f.name =="SCHPO"]
+            [ exit_with_snap(f) for f in node if f.name =="SCHPO"]
 
-
+def exit_with_snap(f):
+    for snap in Snapshot.getinstances():
+        cPickle.dump(snap, file(snap.taxonomic_range + '.pickle','w'), cPickle.HIGHEST_PROTOCOL)
+    exit("Traversal stopped at SCHPO")
 
 class XML_manager(object):
 
@@ -410,6 +419,7 @@ class Merge_ancestral(object):
         self.children = children
         self.hierarchical_merger = hierarchical_merger
         self.orthograph = {}
+        self.connectedComponents = None
         self.hogComputed= []
         self.newHOGs = []
         self.do_the_merge()
@@ -433,28 +443,41 @@ class Merge_ancestral(object):
         # Find all HOGs relations in the matrix, replace with 1 the significant relations and with 0 for the unrevelant
 
         method = self.hierarchical_merger.settings.method
+        self.newgenome.snap.graph = cPickle.dumps(self.orthograph, protocol=cPickle.HIGHEST_PROTOCOL)
+
 
         if method == "pair":
+
+            self.connectedComponents = self.search_CC()
+            self.hogComputed = [] # Because we don't care here
+
+            self.newgenome.snap.CC_before_cleaning = cPickle.dumps(self.connectedComponents, protocol=cPickle.HIGHEST_PROTOCOL)
+            self.connectedComponents = None
 
             start_time = time.time()
             self.clean_graph_pair(self.hierarchical_merger.settings.param)
             print("\t * %s seconds --" % (time.time() - start_time)+ ' Cleaning the graph')
 
             start_time = time.time()
-            self.search_CC()
+            self.connectedComponents = self.search_CC()
+
+
+
             print("\t * %s seconds --" % (time.time() - start_time)+ ' Searching CCs')
 
         elif method == "update":
 
             start_time = time.time()
-            self.search_CC()
+            self.connectedComponents = self.search_CC()
+            self.newgenome.snap.CC_before_cleaning = cPickle.dumps(self.connectedComponents, protocol=cPickle.HIGHEST_PROTOCOL)
+
             self.hogComputed = [] # Because we don't care here
             print("\t * %s seconds --" % (time.time() - start_time)+ ' Searching CCs before cleaning')
 
             start_time = time.time()
             self.clean_graph_update(self.hierarchical_merger.settings.param)
+
             print("\t * %s seconds --" % (time.time() - start_time)+ ' Cleaning the graph')
-            #sys.exit("The update method is not yet implemented")
 
 
 
@@ -462,6 +485,8 @@ class Merge_ancestral(object):
         start_time = time.time()
         self.CC_to_HOG()
         print("\t * %s seconds --" % (time.time() - start_time)+ ' Merging HOGs')
+
+        self.newgenome.snap.HOGs_created = cPickle.dumps(self.newHOGs, protocol=cPickle.HIGHEST_PROTOCOL)
 
         # Update solo Hog to the new taxonomic range
         start_time = time.time()
@@ -522,7 +547,7 @@ class Merge_ancestral(object):
             self.hogComputed.append(h1)
             self.hogComputed.append(h2)
         self.hogComputed = set(self.hogComputed)
-        self.connectedComponents = connectedComponents.get_components()
+        return connectedComponents.get_components()
 
     def clean_graph_pair(self, threshold):
         threshold =int(threshold)
@@ -682,15 +707,29 @@ class Pseudo_node(object):
 
 
 class Snapshot(object):
+    _instances = set()
+
     def __init__(self, ancestral_genome):
         self.taxonomic_range = ancestral_genome.get_name()        # taxonomic range
         self.children = self.set_name(ancestral_genome)                 # list of children
-        #self.graph = None                   # list of list(hogi, hogj, edge)
-        #self.CC_before_cleaning = None      # list of (list of HOGs)
-        #self.CC_after_cleaning = None       # list of CCs
+        self.graph = None                   # list of list(hogi, hogj, edge)
+        self.CC_before_cleaning = None      # list of (list of HOGs)
+        self.HOGs_created = None       # list of CCs
+        self._instances.add(weakref.ref(self))
 
     def set_name(self, ag):
         children = []
         for child in ag.children:
-            children.append(child.get_name()  )
+            children.append(child.get_name())
         return children
+
+    @classmethod
+    def getinstances(cls):
+        dead = set()
+        for ref in cls._instances:
+            obj = ref()
+            if obj is not None:
+                yield obj
+            else:
+                dead.add(ref)
+        cls._instances -= dead
