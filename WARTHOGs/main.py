@@ -25,16 +25,16 @@ def main(argv):
     set.dataset_folders = dataset_folders
 
     try:
-        opts, args = getopt.getopt(argv,"ht:d:me:c:p:")
+        opts, args = getopt.getopt(argv,"ht:d:me:c:p:s")
     except getopt.GetoptError:
-        print('Usage: main.py -d datasetname -t datastructure -c method [-p parameter][-e extension] [-m] ')
+        print('Usage: main.py -d datasetname -t datastructure -c method [-p parameter][-e extension] [-m] [-s] ')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-h"):
             print('\n  \033[1mNAME\033[0m \n'
                   '     WARTHOGs -- Infer hierarchical orthologous groups from orthologous (HOGs) pairwise relations and a phylogenetic tree. \n'
                   '\n  \033[1mSYNOPSIS\033[0m \n'
-                  '     main.py -d datasetname -t datastructure -c method [-p parameter][-e extension] [-m] \n'
+                  '     main.py -d datasetname -t datastructure -c method [-p parameter][-e extension] [-m] [-s] \n'
                   '\n  \033[1mDESCRIPTION\033[0m\n'
                   '     The following options are available:\n'
                   '\n     \033[1m-d\033[0m  Name of the dataset folder within Datasets/ .\n'
@@ -42,6 +42,7 @@ def main(argv):
                   "\n     \033[1m-c\033[0m    The method used to clean the orthology graph during the reconstruction of the ancestral HOGs. You can select 'pair' for cleaning the edges pairs by pairs of HOGs ( -p required, correspond to Tmerge), 'update' (?).\n"
                   '\n     \033[1m-p\033[0m  (optional)    Parameter used by the method.\n'
                   "\n     \033[1m-e\033[0m  (optional)    Extension of the pairwise files, by default: '.txt'.\n"
+                  "\n     \033[1m-s\033[0m  (optional)    If specified, the snapshot mode will be enable.\n"
                   '\n     \033[1m-m\033[0m  (optional)    If used, the ID_mapping file will be used to map OMAId and external Id.\n'
                   '\n  \033[1mIMPORTANT\033[0m \n'
                   '\n  Make sure you respected the following folder structures and files formats !!! ( "5LOID" = 5 letters ID for OMA species) \n'
@@ -82,6 +83,9 @@ def main(argv):
 
         elif opt in ("-e"):
             set.extension = arg
+
+        elif opt in ("-s"):
+            set.snapshot = True
 
         elif opt in ("-c"):
             if arg != "pair" and arg!= "update" :
@@ -142,6 +146,16 @@ def main(argv):
     if set.method == "update":
         set.output_name = set.output_name + str(set.param) + "_"
     set.output_name = set.output_name + str(d.hour) + 'h' + str(d.minute) + 'm' + str(d.second) + '.xml'
+
+    if set.snapshot == True:
+        if not os.path.isdir("../Snapshot/"):
+            os.mkdir("../Snapshot/")
+        set.snapshot_folder_snap = "../Snapshot/"
+        os.mkdir(set.snapshot_folder_snap + "snap_" + set.output_name[:-4]  )
+        set.snapshot_folder_path = set.snapshot_folder_snap + "snap_" + set.output_name[:-4]
+        set.snapshot_folder_name  = "snap_" + set.output_name[:-4]
+
+
 
 
     print(" \n\n \n WARTHOGs launched on dataset " + str(set.folder_name) + " with the method  "+ str(set.method))

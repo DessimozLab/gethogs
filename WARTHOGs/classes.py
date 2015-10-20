@@ -1,4 +1,5 @@
 import cPickle
+import os
 import re
 
 __author__ = 'traincm'
@@ -36,6 +37,11 @@ class Settings(object):
         self.datasets_path = "../Datasets/"
         self.output_path = None
         self.output_name = None
+        self.snapshot = None
+        self.snapshot_folder_name = None
+        self.snapshot_folder_path = None
+        self.snapshot_folder_snap = None
+
 
 
 class Genome(object):
@@ -127,7 +133,10 @@ class AncestralGenome(Genome):
             for i in range(len(chi.species)):
                 self.species.append(chi.species[i])
         start_time = time.time()
-        self.snap = Snapshot(self)
+        if hierarchical_merger.settings.snapshot:
+            if not os.path.isdir(hierarchical_merger.settings.snapshot_folder_path + hierarchical_merger.settings.snapshot_folder_name + "/" + self.get_name()):
+                os.mkdir(hierarchical_merger.settings.snapshot_folder_path +  "/" + self.get_name())
+                hierarchical_merger.current_snap_folder =  hierarchical_merger.settings.snapshot_folder_path +  "/" + self.get_name()
         e = Merge_ancestral(self, self.children, hierarchical_merger)
         self.HOGS = e.newHOGs
         print("\t - %s seconds " % (time.time() - start_time) + ' Ancestral genome reconstructed. \n' )
@@ -214,14 +223,8 @@ class Hierarchical_merger(object):
         else:
             for child in node:
                 self.recursive_traversal(child)
-
             node.genome = AncestralGenome(node, self)
-            [ exit_with_snap(f) for f in node if f.name =="SCHPO"]
 
-def exit_with_snap(f):
-    for snap in Snapshot.getinstances():
-        cPickle.dump(snap, file(snap.taxonomic_range + '.pickle','w'), cPickle.HIGHEST_PROTOCOL)
-    exit("Traversal stopped at SCHPO")
 
 class XML_manager(object):
 
@@ -443,16 +446,16 @@ class Merge_ancestral(object):
         # Find all HOGs relations in the matrix, replace with 1 the significant relations and with 0 for the unrevelant
 
         method = self.hierarchical_merger.settings.method
-        self.newgenome.snap.graph = cPickle.dumps(self.orthograph, protocol=cPickle.HIGHEST_PROTOCOL)
+        Snapshot.write_graph(self.hierarchical_merger.current_snap_folder+ "/graphe.txt", self.orthograph)
 
 
         if method == "pair":
 
-            self.connectedComponents = self.search_CC()
-            self.hogComputed = [] # Because we don't care here
+            #self.connectedComponents = self.search_CC()
+            #self.hogComputed = [] # Because we don't care here
 
-            self.newgenome.snap.CC_before_cleaning = cPickle.dumps(self.connectedComponents, protocol=cPickle.HIGHEST_PROTOCOL)
-            self.connectedComponents = None
+            #self.newgenome.snap.CC_before_cleaning = cPickle.dumps(self.connectedComponents, protocol=cPickle.HIGHEST_PROTOCOL)
+            #self.connectedComponents = None
 
             start_time = time.time()
             self.clean_graph_pair(self.hierarchical_merger.settings.param)
@@ -469,7 +472,8 @@ class Merge_ancestral(object):
 
             start_time = time.time()
             self.connectedComponents = self.search_CC()
-            self.newgenome.snap.CC_before_cleaning = cPickle.dumps(self.connectedComponents, protocol=cPickle.HIGHEST_PROTOCOL)
+            Snapshot.write_CCs_before(self.hierarchical_merger.current_snap_folder+ "/CC_before.txt", self.connectedComponents )
+
 
             self.hogComputed = [] # Because we don't care here
             print("\t * %s seconds --" % (time.time() - start_time)+ ' Searching CCs before cleaning')
@@ -486,7 +490,7 @@ class Merge_ancestral(object):
         self.CC_to_HOG()
         print("\t * %s seconds --" % (time.time() - start_time)+ ' Merging HOGs')
 
-        self.newgenome.snap.HOGs_created = cPickle.dumps(self.newHOGs, protocol=cPickle.HIGHEST_PROTOCOL)
+        Snapshot.write_CCs_after(self.hierarchical_merger.current_snap_folder+ "/CC_after.txt", self.newHOGs )
 
         # Update solo Hog to the new taxonomic range
         start_time = time.time()
@@ -496,6 +500,10 @@ class Merge_ancestral(object):
                 list_hogs.append(hog)
         list_hogs = set(list_hogs)
         list_hogs_not_computed = list(set(list_hogs) - set(self.hogComputed))
+
+        mega_list_hogs = list(list_hogs) + self.newHOGs
+        Snapshot.write_HOG_mapping(self.hierarchical_merger.current_snap_folder+ "/HOG_mapping.txt" , mega_list_hogs)
+
         self.updatesoloHOGs(list_hogs_not_computed)
         print("\t * %s seconds --" % (time.time() - start_time) + ' Updating soloHOGs.')
 
@@ -722,6 +730,40 @@ class Snapshot(object):
         for child in ag.children:
             children.append(child.get_name())
         return children
+
+    @classmethod
+    def write_graph(cls, fn, dict):
+        with open (fn,'a') as file:
+            for HOGs, score in dict.iteritems():
+                file.write("{}\t{}\t{}\n".format(HOGs[0].id, HOGs[1].id, score))
+
+    @classmethod
+    def write_CCs_before(cls, fn, CCs):
+        with open (fn,'a') as file:
+            for CC in CCs:
+                for HOG in CC:
+                    file.write("%s\t" % HOG.id)
+                file.write("\n")
+
+
+
+
+    @classmethod
+    def write_CCs_after(cls, fn, HOGS):
+        with open (fn,'a') as file:
+            for HOG in HOGS:
+                file.write(str(HOG.id) +"\n")
+
+    @classmethod
+    def write_HOG_mapping(cls, fn, HOGS):
+        with open (fn,'a') as file:
+            for HOG in HOGS:
+                genes_line = str()
+                for species,genes in HOG.genes.items():
+                    for gene in genes:
+                        genes_line += str(species.species[0]) + str(gene.speciesId) + "\t"
+                file.write(str(HOG.id) + "\t" + genes_line + "\n")
+
 
     @classmethod
     def getinstances(cls):

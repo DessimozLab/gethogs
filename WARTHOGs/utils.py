@@ -5,14 +5,17 @@ import lxml.etree as etree
 from math import *
 from Bio import Phylo
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, isdir
 import numpy as np
 import os
-import cPickle
 
 def get_list_files(mypath):
     onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
     return onlyfiles
+
+def get_list_dir(mypath):
+    onlydir = [ f for f in listdir(mypath) if isdir(join(mypath,f)) ]
+    return onlydir
 
 
 def read_tree(_fileName,_fileType):
@@ -154,81 +157,4 @@ def get_genomes_size(filepath):
         genome_size[genome]=pairs[1]
     return genome_size
 
-
-
-
-# UNUSED FUNCTION
-
-'''
-def compute_score_merging_2(con, self):
-
-
-    for e in con:
-        if e >= self.size[1]:
-            hog_genome_1[e - self.size[1]]= self.genome1.HOGS[e - self.size[1]]
-        else:
-            hog_genome_2[e]= self.genome2.HOGS[e]
-
-    print("AG1")
-    for hog in hog_genome_1:
-        for i in hog_genome_1[hog].genes:
-            for g in hog_genome_1[hog].genes[i]:
-                print(i,g.speciesId)
-
-    print("AG2")
-    for hog in hog_genome_2:
-        for i in hog_genome_2[hog].genes:
-            for g in hog_genome_2[hog].genes[i]:
-                print(i,g.speciesId)
-
-    nbr_HOGS_genes_genome1 = 0
-    nbr_HOGS_genes_genome2 = 0
-
-    hog_genome_2_connected = []
-    hog_genome_1_connected = []
-
-    for key1,value1 in hog_genome_1.items():
-        nbr_HOGS_genes_genome1 = nbr_HOGS_genes_genome1 + len(value1.genes)
-    for key2,value2 in hog_genome_2.items():
-        nbr_HOGS_genes_genome2 = nbr_HOGS_genes_genome2 + len(value2.genes)
-
-    print(self.matrix)
-    for key1,value1 in hog_genome_1.items():
-        for key2,value2 in hog_genome_2.items():
-            score_matrix = self.matrix[self.genome1.HOGS.index(value1)][self.genome2.HOGS.index(value2)]
-            if score_matrix > 0:
-                if value1 not in hog_genome_1_connected:
-                    hog_genome_1_connected.append(value1)
-                if value2 not in hog_genome_2_connected:
-                    hog_genome_2_connected.append(value2)
-
-    fract_connected1 = float(len(hog_genome_1_connected))/ float(nbr_HOGS_genes_genome1)
-    fract_connected2 = float(len(hog_genome_2_connected))/ float(nbr_HOGS_genes_genome2)
-    print(fract_connected1, fract_connected2)
-    score = (fract_connected1+ fract_connected2)/2
-    score = score * 100
-    return score
-
-
-
-
-
-def find_xml_hog(id):
-    #return etree.XPath(".//hierarchicalOrtholousGroup[@hogId='"+str(id)+"']")
-    return groupsxml.find(".//hierarchicalOrtholousGroup[@hogId='"+str(id)+"']")
-
-
-def recursive_traversal_hog_xml(node,nodexml,hog):
-    for child in node:
-        if child.name:
-            if child.genome.species[0] in hog.genes.keys():
-                genes= hog.genes[child.genome.species[0]]
-                for e in genes:
-                    genexml = etree.SubElement(nodexml, "geneRef")
-                    genexml.set("id", str(e.UniqueId))
-
-        else:
-            hogxml = etree.SubElement(nodexml, "hierarchicalOrtholousGroup")
-            recursive_traversal_hog_xml(child,hogxml,hog)
-'''
 
