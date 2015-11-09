@@ -169,6 +169,8 @@ def main(argv):
     root = hierarchical_merger.tree.root
     hierarchical_merger.recursive_traversal(root)
     hierarchical_merger.XML_manager.finish_xml_and_export(hierarchical_merger.settings)
+    if hierarchical_merger.settings.snapshot:
+        Snapshot.write_taxon_mapping(set.snapshot_folder_snap + "snap_" + set.output_name[:-4] + "/taxon_mapping.txt", hierarchical_merger.settings.snap_mapping_taxon)
     ActualGenome.flush_objects()
 
     ############################

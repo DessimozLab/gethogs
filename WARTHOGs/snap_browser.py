@@ -23,7 +23,7 @@ def main(argv):
 
 
     try:
-        opts, args = getopt.getopt(argv,"f:s:g:")
+        opts, args = getopt.getopt(argv,"f:s:g:e")
     except getopt.GetoptError:
         print('Usage: snap_browser.py -f path_folder_snap -s specie -g gene_id')
         sys.exit(2)
@@ -34,18 +34,25 @@ def main(argv):
             Settings.geneRef = arg
         if opt in ("-s"):
             Settings.spRef = arg
+        if opt in ("-e"):
+            Settings.hide_graph = True
 
     dirs = utils.get_list_dir(Settings.path_folder_snap)
     print "\n \n"
 
+    taxon_map = {}
+    taxon_mapping_data = list(csv.reader(open(Settings.path_folder_snap+ "/taxon_mapping.txt", 'rb'), delimiter='\t'))
+    for pairs in taxon_mapping_data:
+        taxon_map[pairs[0]]=pairs[1]
 
     for taxon_dir in dirs:
-        print color.UNDERLINE, color.BOLD ,   taxon_dir , color.END,
-        print "\n"
+
+        _CC_before = None
+        _CC_after = None
+        _graph = None
 
 
         HOGs = {}
-        CC_found = None
 
         HOG_mapping_data = list(csv.reader(open(Settings.path_folder_snap+ "/"+ taxon_dir + "/HOG_mapping.txt", 'rb'), delimiter='\t'))
         for pairs in HOG_mapping_data:
@@ -53,38 +60,47 @@ def main(argv):
 
         CC_before_cleaning = list(csv.reader(open(Settings.path_folder_snap+ "/"+ taxon_dir + "/CC_before.txt", 'rb'), delimiter='\t'))
 
-        print color.BOLD ,  "CC before cleaning:",color.END
         for CC in CC_before_cleaning:
             if find_in_CC(CC[:-1], Settings.geneRef, Settings.spRef,HOGs):
-                CC_found = CC[:-1]
-                for hog in CC[:-1]:
-                    display_HOG(hog,HOGs)
+                _CC_before = CC[:-1]
                 break
-        print "\n"
 
         CC_after_cleaning = list(csv.reader(open(Settings.path_folder_snap+ "/"+ taxon_dir + "/CC_after.txt", 'rb'), delimiter='\t'))
 
-        print color.BOLD ,  "CC after cleaning:",color.END
+
         gene_id = str(Settings.spRef) + str(Settings.geneRef)
-        for CC in CC_after_cleaning:
-            for hog in CC:
+        for CC_after in CC_after_cleaning:
+            for hog in CC_after:
                 for gene in HOGs[hog]:
                     if str(gene_id) == str(gene) :
-                        for hog in CC:
-                            display_HOG(hog,HOGs)
+                        _CC_after = CC_after
                         break
-        print "\n"
 
         graph = list(csv.reader(open(Settings.path_folder_snap+ "/"+ taxon_dir + "/graphe.txt", 'rb'), delimiter='\t'))
-        if CC_found:
-            display_graph(CC_found, graph)
+        if _CC_before:
+            _graph = graph
 
+        if _CC_before or _CC_after:
+            print color.UNDERLINE, color.BOLD ,   taxon_map[taxon_dir] , color.END, "\n"
+            if _CC_before:
+                print color.BOLD ,  "CC before cleaning:",color.END
+                for hog in _CC_before:
+                    display_HOG(hog,HOGs)
+                print "\n"
+            if _CC_after:
+                print color.BOLD ,  "CC after cleaning:",color.END
+                for hog in _CC_after:
+                    display_HOG(hog,HOGs)
+                print "\n"
+            if not Settings.hide_graph:
+                display_graph(_CC_before, _graph)
     print "\n \n"
 
 class Settings:
     geneRef = None
     spRef = None
     path_pickle = None
+    hide_graph = False
 
 def find_in_CC(CC, gene, sp, HOGs):
     gene_id = str(sp) + str(gene)
@@ -112,11 +128,6 @@ def display_graph(CC, graph):
             elif i[1] == e[0] and i[0] == e[1]:
                 print "edge:" , e
                 print "\n"
-
-
-
-
-
 
 
 

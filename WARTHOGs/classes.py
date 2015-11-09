@@ -41,6 +41,9 @@ class Settings(object):
         self.snapshot_folder_name = None
         self.snapshot_folder_path = None
         self.snapshot_folder_snap = None
+        self.snap_mapping_taxon = {}
+        self.taxon_id_count = 0
+
 
 
 
@@ -135,8 +138,10 @@ class AncestralGenome(Genome):
         start_time = time.time()
         if hierarchical_merger.settings.snapshot:
             if not os.path.isdir(hierarchical_merger.settings.snapshot_folder_path + hierarchical_merger.settings.snapshot_folder_name + "/" + self.get_name()):
-                os.mkdir(hierarchical_merger.settings.snapshot_folder_path +  "/" + self.get_name())
-                hierarchical_merger.current_snap_folder =  hierarchical_merger.settings.snapshot_folder_path +  "/" + self.get_name()
+                os.mkdir(hierarchical_merger.settings.snapshot_folder_path +  "/" + str(hierarchical_merger.settings.taxon_id_count))
+                hierarchical_merger.settings.snap_mapping_taxon[hierarchical_merger.settings.taxon_id_count]= self.get_name()
+                hierarchical_merger.current_snap_folder =  hierarchical_merger.settings.snapshot_folder_path +  "/" + str(hierarchical_merger.settings.taxon_id_count)
+                hierarchical_merger.settings.taxon_id_count += 1
         e = Merge_ancestral(self, self.children, hierarchical_merger)
         self.HOGS = e.newHOGs
         print("\t - %s seconds " % (time.time() - start_time) + ' Ancestral genome reconstructed. \n' )
@@ -446,16 +451,17 @@ class Merge_ancestral(object):
         # Find all HOGs relations in the matrix, replace with 1 the significant relations and with 0 for the unrevelant
 
         method = self.hierarchical_merger.settings.method
-        Snapshot.write_graph(self.hierarchical_merger.current_snap_folder+ "/graphe.txt", self.orthograph)
+        if self.hierarchical_merger.settings.snapshot:
+            Snapshot.write_graph(self.hierarchical_merger.current_snap_folder+ "/graphe.txt", self.orthograph)
 
 
         if method == "pair":
 
-            #self.connectedComponents = self.search_CC()
-            #self.hogComputed = [] # Because we don't care here
-
-            #self.newgenome.snap.CC_before_cleaning = cPickle.dumps(self.connectedComponents, protocol=cPickle.HIGHEST_PROTOCOL)
-            #self.connectedComponents = None
+            if self.hierarchical_merger.settings.snapshot:
+                self.connectedComponents = self.search_CC()
+                self.hogComputed = [] # Because we don't care here
+                Snapshot.write_CCs_before(self.hierarchical_merger.current_snap_folder+ "/CC_before.txt", self.connectedComponents )
+                self.connectedComponents = None
 
             start_time = time.time()
             self.clean_graph_pair(self.hierarchical_merger.settings.param)
@@ -472,7 +478,8 @@ class Merge_ancestral(object):
 
             start_time = time.time()
             self.connectedComponents = self.search_CC()
-            Snapshot.write_CCs_before(self.hierarchical_merger.current_snap_folder+ "/CC_before.txt", self.connectedComponents )
+            if self.hierarchical_merger.settings.snapshot:
+                Snapshot.write_CCs_before(self.hierarchical_merger.current_snap_folder+ "/CC_before.txt", self.connectedComponents )
 
 
             self.hogComputed = [] # Because we don't care here
@@ -489,8 +496,8 @@ class Merge_ancestral(object):
         start_time = time.time()
         self.CC_to_HOG()
         print("\t * %s seconds --" % (time.time() - start_time)+ ' Merging HOGs')
-
-        Snapshot.write_CCs_after(self.hierarchical_merger.current_snap_folder+ "/CC_after.txt", self.newHOGs )
+        if self.hierarchical_merger.settings.snapshot:
+            Snapshot.write_CCs_after(self.hierarchical_merger.current_snap_folder+ "/CC_after.txt", self.newHOGs )
 
         # Update solo Hog to the new taxonomic range
         start_time = time.time()
@@ -501,8 +508,9 @@ class Merge_ancestral(object):
         list_hogs = set(list_hogs)
         list_hogs_not_computed = list(set(list_hogs) - set(self.hogComputed))
 
-        mega_list_hogs = list(list_hogs) + self.newHOGs
-        Snapshot.write_HOG_mapping(self.hierarchical_merger.current_snap_folder+ "/HOG_mapping.txt" , mega_list_hogs)
+        if self.hierarchical_merger.settings.snapshot:
+            mega_list_hogs = list(list_hogs) + self.newHOGs
+            Snapshot.write_HOG_mapping(self.hierarchical_merger.current_snap_folder+ "/HOG_mapping.txt" , mega_list_hogs)
 
         self.updatesoloHOGs(list_hogs_not_computed)
         print("\t * %s seconds --" % (time.time() - start_time) + ' Updating soloHOGs.')
@@ -586,6 +594,7 @@ class Merge_ancestral(object):
                     CCs.append(set(node.hogs))
                     for hog in node.hogs:
                         self.hogComputed.append(hog)
+
         self.connectedComponents = CCs
 
 
@@ -715,21 +724,6 @@ class Pseudo_node(object):
 
 
 class Snapshot(object):
-    _instances = set()
-
-    def __init__(self, ancestral_genome):
-        self.taxonomic_range = ancestral_genome.get_name()        # taxonomic range
-        self.children = self.set_name(ancestral_genome)                 # list of children
-        self.graph = None                   # list of list(hogi, hogj, edge)
-        self.CC_before_cleaning = None      # list of (list of HOGs)
-        self.HOGs_created = None       # list of CCs
-        self._instances.add(weakref.ref(self))
-
-    def set_name(self, ag):
-        children = []
-        for child in ag.children:
-            children.append(child.get_name())
-        return children
 
     @classmethod
     def write_graph(cls, fn, dict):
@@ -744,9 +738,6 @@ class Snapshot(object):
                 for HOG in CC:
                     file.write("%s\t" % HOG.id)
                 file.write("\n")
-
-
-
 
     @classmethod
     def write_CCs_after(cls, fn, HOGS):
@@ -764,14 +755,8 @@ class Snapshot(object):
                         genes_line += str(species.species[0]) + str(gene.speciesId) + "\t"
                 file.write(str(HOG.id) + "\t" + genes_line + "\n")
 
-
     @classmethod
-    def getinstances(cls):
-        dead = set()
-        for ref in cls._instances:
-            obj = ref()
-            if obj is not None:
-                yield obj
-            else:
-                dead.add(ref)
-        cls._instances -= dead
+    def write_taxon_mapping(cls, fn, dict_map_taxon):
+        with open (fn,'a') as file:
+                for id, taxon in dict_map_taxon.items():
+                    file.write(str(id) + "\t" + taxon + "\n")
