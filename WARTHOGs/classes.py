@@ -127,9 +127,10 @@ class ActualGenome(Genome):
 
 
 class AncestralGenome(Genome):
-    def __init__(self, node, hierarchical_merger ):
+    def __init__(self, node, hierarchical_merger, taxon ):
         super(AncestralGenome, self).__init__()
         self.children = []
+        self.taxon = taxon
         for c in node:
             self.children.append(c.genome)
         for chi in self.children:
@@ -222,13 +223,19 @@ class Hierarchical_merger(object):
 
 
     def recursive_traversal(self, node):
+        children = []
+        for child in node:
+            children.append(child)
 
-        if node.name:
+        if children == [] :
             node.genome = utils.create_actualGenome(node.name, self)
         else:
             for child in node:
                 self.recursive_traversal(child)
-            node.genome = AncestralGenome(node, self)
+            taxon = None
+            if node.name:
+                taxon =  node.name
+            node.genome = AncestralGenome(node, self, taxon)
 
 
 class XML_manager(object):
@@ -523,11 +530,15 @@ class Merge_ancestral(object):
             newHOG.xml = anchogxml
             taxon = etree.SubElement(anchogxml, "property")
             taxon.set("name", 'TaxRange')
-            strtaxon = ''
-            for genome in self.children:
-                for species in genome.species:
-                    strtaxon = strtaxon + str(species)
-            taxon.set("value", strtaxon)
+            if self.newgenome.taxon:
+                taxon.set("value", self.newgenome.taxon)
+            else:
+                strtaxon = ''
+                for genome in self.children:
+                    for species in genome.species:
+                        strtaxon = strtaxon + str(species)
+                taxon.set("value", strtaxon)
+
             hog_by_genomes = {}
             xml_by_genome = {}
             for genome in self.children:
