@@ -386,7 +386,7 @@ class Filemap(object):
                 return pairdata['data']
 
         data = np.genfromtxt(filename, dtype=None, comments="#", delimiter="", usecols=(0,1),
-                             names=['gene1', 'gene2', 'type'])
+                             names=['gene1', 'gene2'])
         pairs = {'data': data, 'genome': [genome1, genome2]}
         self.genome_pairs_data.append(pairs)
         return pairs['data'], inverted
@@ -442,7 +442,16 @@ class Merge_ancestral(object):
 
 
     def do_the_merge(self):
-        print("-- Merging of ", self.newgenome.get_name())
+
+        if self.newgenome.taxon:
+            print("-- Merging of ", self.newgenome.taxon)
+        else:
+            strtaxon = ''
+            for genome in self.children:
+                for species in genome.species:
+                    strtaxon = strtaxon + str(species)
+            print("-- Merging of ", strtaxon)
+
 
         # Find Orthologous relations between all genes of all species
         start_time = time.time()
@@ -630,12 +639,17 @@ class Merge_ancestral(object):
 
     def find_hog_fill_graph(self, inverted, actual_genome1, actual_genome2, raw, genome1, genome2):
 
+
+        gene1 = raw['gene2']
+        gene2 = raw['gene2']
+
         if inverted:
-            hogOfgene1 = actual_genome1.get_gene_by_nr(raw['gene2']).get_hog(genome1)
-            hogOfgene2 = actual_genome2.get_gene_by_nr(raw['gene1']).get_hog(genome2)
+            hogOfgene1 = actual_genome1.get_gene_by_nr(gene2).get_hog(genome1)
+            hogOfgene2 = actual_genome2.get_gene_by_nr(gene1).get_hog(genome2)
         else:
-            hogOfgene1 = actual_genome1.get_gene_by_nr(raw['gene1']).get_hog(genome1)
-            hogOfgene2 = actual_genome2.get_gene_by_nr(raw['gene2']).get_hog(genome2)
+            print(raw['gene1'])
+            hogOfgene1 = actual_genome1.get_gene_by_nr(gene1).get_hog(genome1)
+            hogOfgene2 = actual_genome2.get_gene_by_nr(gene2).get_hog(genome2)
 
         try:
             self.orthograph[(hogOfgene1,hogOfgene2)] += 1
