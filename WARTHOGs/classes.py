@@ -372,7 +372,7 @@ class Filemap(object):
 
     def loadfile(self, genome1, genome2):
         if self.settings.type_folder == "standalone":
-            files = utils.get_list_files(self.settings.datasets_path + self.settings.folder_name +'/PairwiseOrthologs')
+            files = utils.get_list_files(self.settings.datasets_path + self.settings.folder_name +'/PairwiseOrthologs/')
             genome1, genome2, inverted = self.genome_order_same_folder(genome1, genome2, files)
             filename = self.pairwise_path + genome1.species[0] + '-' + genome2.species[0] + self.settings.extension
 
@@ -640,14 +640,13 @@ class Merge_ancestral(object):
     def find_hog_fill_graph(self, inverted, actual_genome1, actual_genome2, raw, genome1, genome2):
 
 
-        gene1 = raw['gene2']
+        gene1 = raw['gene1']
         gene2 = raw['gene2']
 
         if inverted:
             hogOfgene1 = actual_genome1.get_gene_by_nr(gene2).get_hog(genome1)
             hogOfgene2 = actual_genome2.get_gene_by_nr(gene1).get_hog(genome2)
         else:
-            print(raw['gene1'])
             hogOfgene1 = actual_genome1.get_gene_by_nr(gene1).get_hog(genome1)
             hogOfgene2 = actual_genome2.get_gene_by_nr(gene2).get_hog(genome2)
 
