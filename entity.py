@@ -14,7 +14,7 @@ class Genome(object):
         self.HOGS = [] # list of HOGs related to this genome
         self.species = [] # list of all species contained within taxon
         self.children = [] # list of chidren obj:Genome
-        self.genes = {} # key: internal id from pairwise files, value: Gene obj
+        self.genes = {} # key: external id from pairwise files, value: Gene obj
         self.taxon = None # taxon name
         self.type = None # Ancestral or extent
         self.UniqueId = Genome.IdCount
@@ -41,6 +41,9 @@ class Genome(object):
         Genome.zoo[node.name] = self
         print('-> Genome of '+ str(self.species[0]) + " (composed of " + str(len(list_genes)) +  " genes) created.")
 
+    def get_gene_by_ext_id(self, ext_id):
+        return self.genes[ext_id]
+
     def create_genes_hogs_extent_genomes(self, list_genes):
         '''
         for each genes of this species in pairwise folder, create the related obj:gene and obj:hog
@@ -53,7 +56,8 @@ class Genome(object):
             hog.init_solohog(gene, self)
             gene.hog[self] = hog
             self.HOGS.append(hog)
-            self.genes[gene.int_id]=gene
+            self.genes[gene.ext_id]=gene
+
 
     # Ancestral genomes function
     def init_ancestral_genomes(self, node):
@@ -96,6 +100,21 @@ class HOG(object):
         Settings.xml_manager.create_xml_solohog(self)
 
 
+    def merge_with(self, hog_to_merge_with):
+        for key, value in hog_to_merge_with.genes.items():
+            if key in self.genes:
+                for g in value:
+                    if g not in self.genes[key]:
+                        self.genes[key].append(g)
+            else:
+                self.genes[key] = hog_to_merge_with.genes[key]
+
+    def update_top_species_and_genes(self, new_top_genome):
+        self.topspecie = new_top_genome
+        for genome, genes in self.genes.items():
+            for gene in genes:
+                gene.hog[new_top_genome] = self
+
 class Gene(object):
     IdCount = 0
     def __init__(self, ext_id, species):
@@ -104,6 +123,9 @@ class Gene(object):
         self.species = species # obj:Genome that contains this gene
         self.int_id = Gene.IdCount # unique id use by warthogs
         Gene.IdCount += 1
+
+    def get_hog(self, query_genome):
+        return self.hog[query_genome]
 
 
 

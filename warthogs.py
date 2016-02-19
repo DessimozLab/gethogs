@@ -38,7 +38,7 @@ def main(argv):
     start_time = time.time()
     ############################
 
-    print("--- WARTHOGs:")
+    print("\n --- WARTHOGs:")
     print("\t- Start at " + str(time.strftime("%H:%M on %Y-%m-%d ")))
     print("\t- Orthology relations folder:" + str(Settings.pairwise_folder) +" ("+ str(Settings.input_type)+" format)")
     print("\t- Method use to merge HOGS: " + str(Settings.method_merge))
@@ -58,7 +58,8 @@ def main(argv):
 
     ############################
     end_time = time.time()
-    print("--- %s seconds ---" % (end_time - start_time))
+    print("--- %s seconds" % (end_time - start_time))
+    print("\n Done \\0/ \n")
     ############################
 
 

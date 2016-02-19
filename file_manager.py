@@ -45,11 +45,13 @@ def loadfile_columns_one_two(file):
     :param file:
     :return:
     '''
+
     data =  np.genfromtxt(file, dtype=None, comments="#", delimiter="", usecols=(0,1))
-    if data.size == 1:
-        data = np.reshape(data, data.size)
+    try:
+        len(data[0])
         return data
-    else:
+    except TypeError:
+        data = [data]
         return data
 
 def get_list_files(mypath):
@@ -98,12 +100,11 @@ def get_pairwise_file_from_pair_genomes(genome_1, genome_2):
         inverted, file = get_file_genomes_pair_standalone_folder_inverted(genome_1, genome_2)
         file = os.path.join(settings.Settings.pairwise_folder, file)
     elif settings.Settings.input_type == "oma":
-        print genome_1, genome_2
-        inverted = None
-        file = None
         inverted, file = get_if_genomes_pair_oma_folder_inverted(genome_1, genome_2)
-        print inverted, file, "8***"
-        file = os.path.join(settings.Settings.pairwise_folder, genome_1.species[0], file)
+        if inverted:
+            file = os.path.join(settings.Settings.pairwise_folder, genome_2.species[0], file)
+        else:
+            file = os.path.join(settings.Settings.pairwise_folder, genome_1.species[0], file)
     pairwise_data = loadfile_columns_one_two(file)
     return pairwise_data, inverted
 
@@ -263,8 +264,8 @@ class XML_manager(object):
         :return:
         '''
         self.add_species_data(entity.Genome.get_extent_genomes())
-        #self.delete_xml_hog_solo()
-        #self.add_HOGs_ID()
+        self.delete_solohog()
+        self.add_toplevel_OG_Id()
         lib.indent(self.xml)
         tree = etree.ElementTree(self.xml)
         tree.write(settings.Settings.output_file, xml_declaration=True, encoding='utf-8', method="xml")
@@ -290,7 +291,7 @@ class XML_manager(object):
             genes_xml = etree.SubElement(database_xml, "genes")
 
             # Fill <genes> with <gene>
-            for int_id, gene_obj in species.genes.iteritems():
+            for ext_id, gene_obj in species.genes.iteritems():
                 gene_xml = etree.SubElement(genes_xml, "gene")
                 gene_xml.set("id", str(gene_obj.int_id))
                 gene_xml.set("ext_id", str(gene_obj.ext_id))
@@ -301,10 +302,21 @@ class XML_manager(object):
         :param hog:
         :return:
         '''
-        hog.hogxml = etree.SubElement(self.groupsxml, "geneRef")
+        hog.xml = etree.SubElement(self.groupsxml, "geneRef")
         gene = hog.genes[hog.topspecie][0]
-        hog.hogxml.set('id',str(gene.int_id))
-        hog.hogxml.set("ext_id", str(gene.ext_id))
+        hog.xml.set('id',str(gene.int_id))
+        hog.xml.set("ext_id", str(gene.ext_id))
+
+    def delete_solohog(self):
+        for solo_hog in self.xml.iterfind(".//groups/geneRef"):
+            solo_hog.getparent().remove(solo_hog)
+
+    def add_toplevel_OG_Id(self):
+        id_count = 0
+        for i, e in enumerate(self.xml.findall('.//groups/orthologGroup')):
+            e.set('id', str(id_count))
+            id_count += 1
+
 
 
 
