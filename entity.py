@@ -24,7 +24,6 @@ class Genome(object):
     def get_extent_genomes(cls):
         return [genome_obj for species_name, genome_obj in cls.zoo.iteritems() if genome_obj.type == "extent"]
 
-
     # Actual genomes function
     def init_extent_genomes(self, node):
         '''
@@ -58,7 +57,6 @@ class Genome(object):
             self.HOGS.append(hog)
             self.genes[gene.ext_id]=gene
 
-
     # Ancestral genomes function
     def init_ancestral_genomes(self, node):
         self.children = [child.genome for child in node]
@@ -81,8 +79,6 @@ class Genome(object):
             for species in species_list:
                 taxon_name = taxon_name + "/" + str(species)
             self.taxon = taxon_name
-
-
 
 class HOG(object):
     IdCount = 0

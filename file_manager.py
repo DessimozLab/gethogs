@@ -8,8 +8,6 @@ import entity
 import lib
 import settings
 
-
-
 # Function to handle folders/files #
 ####################################
 
@@ -74,8 +72,6 @@ def get_list_species_from_pairwise_folder(input_folder, input_type):
     elif input_type == "oma":
         return get_list_species_from_oma_folder(input_folder)
 
-
-
 def get_list_proteins_from_pairwise_folder(input_folder, input_type, query_species):
     '''
     return the list of proteins in pairwise_folder for a specific species
@@ -88,9 +84,9 @@ def get_list_proteins_from_pairwise_folder(input_folder, input_type, query_speci
     elif input_type == "oma":
         return get_list_proteins_from_oma_folder(input_folder, query_species)
 
-def get_pairwise_file_from_pair_genomes(genome_1, genome_2):
+def get_pairwise_data_from_pair_genomes(genome_1, genome_2):
     '''
-
+    return the file with pairwise data for a pair of genomes, and return if they are inverted or not in the data columns
     :param genome_1:
     :param genome_2:
     :return:
@@ -108,12 +104,16 @@ def get_pairwise_file_from_pair_genomes(genome_1, genome_2):
     pairwise_data = loadfile_columns_one_two(file)
     return pairwise_data, inverted
 
-
-
 ## Standalone type (listed) #
 #############################
 
 def get_file_genomes_pair_standalone_folder_inverted(genome_1, genome_2):
+    '''
+    return for a pair of genomes the related pairwise filename + if their order in file structure
+    :param genome_1:
+    :param genome_2:
+    :return:
+    '''
     files = get_list_files(settings.Settings.pairwise_folder)
     for file in files:
         file_name_no_ext = file.split(os.extsep, 1)[0]
@@ -198,13 +198,13 @@ def get_list_species_from_oma_folder(input_folder):
 
 
 def get_list_proteins_from_oma_folder(input_folder, query_species):
-    '''
+    """
     return the list of proteins in pairwise_folder for a specific species fetching
     either the first or the second column of the ortho_file depending if the species name fit respectively with the folder name or the file name.
     :param input_folder:
     :param input_type:
     :return:
-    '''
+    """
     list_proteins = []
     for dir in get_list_dir(input_folder):
         if dir == query_species:
@@ -221,7 +221,12 @@ def get_list_proteins_from_oma_folder(input_folder, query_species):
     return list(set(list_proteins))
 
 def get_if_genomes_pair_oma_folder_inverted(genome_1, genome_2):
-
+    """
+    return for a pair of genomes the related pairwise filename + if their order in file structure
+    :param genome_1:
+    :param genome_2:
+    :return:
+    """
     if genome_1.species[0] in settings.Settings.folder_structure.keys():
         for file in settings.Settings.folder_structure[genome_1.species[0]]:
             if file.split(os.extsep, 1)[0] == genome_2.species[0]:
@@ -308,6 +313,10 @@ class XML_manager(object):
         hog.xml.set("ext_id", str(gene.ext_id))
 
     def delete_solohog(self):
+        '''
+        delete in the xml, all the genes inside the groups element that are not attached to any hogs
+        :return:
+        '''
         for solo_hog in self.xml.iterfind(".//groups/geneRef"):
             solo_hog.getparent().remove(solo_hog)
 

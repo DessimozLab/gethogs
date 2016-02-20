@@ -1,8 +1,7 @@
-import sys
-
 __author__ = 'admin'
 import file_manager
 from Bio import Phylo
+import sys
 
 class Settings(object):
     '''

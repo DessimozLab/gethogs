@@ -1,3 +1,5 @@
+__author__ = 'admin'
+
 from itertools import combinations
 import time
 import itertools
@@ -7,9 +9,6 @@ import settings
 import lib
 import unionfind
 import lxml.etree as etree
-
-__author__ = 'admin'
-
 
 
 class Merge_ancestral():
@@ -56,12 +55,12 @@ class Merge_ancestral():
         print("\t * %s seconds -- " % (time.time() - start_time)+ str(len(self.hogComputed)) + ' HOGs merged into ' + str(len(self.newHOGs)) + ' HOGs')
 
         start_time = time.time()
-        list_hogs = []
-        for genome in self.newgenome.children:
-            for hog in genome.HOGS:
-                list_hogs.append(hog)
-        list_hogs = set(list_hogs)
-        list_hogs_not_computed = list(set(list_hogs) - set(self.hogComputed))
+        list_all_hogs_in_children = []
+        for children in self.newgenome.children:
+            for hog_children in children.HOGS:
+                list_all_hogs_in_children.append(hog_children)
+        list_all_hogs_in_children = set(list_all_hogs_in_children)
+        list_hogs_not_computed = list(set(list_all_hogs_in_children) - set(self.hogComputed))
         self.update_solo_HOGs(list_hogs_not_computed)
         print("\t * %s seconds -- " % (time.time() - start_time) + str(len(list_hogs_not_computed)) + ' solo HOGs have been updated. ')
 
@@ -84,7 +83,7 @@ class Merge_ancestral():
                         extent_genome_2 = entity.Genome.zoo[species_name_2]
 
                         # get the pariwise data from pairwise file and iterate over all pairs
-                        pairwise_data, pair_inverted = file_manager.get_pairwise_file_from_pair_genomes(extent_genome_1, extent_genome_2)
+                        pairwise_data, pair_inverted = file_manager.get_pairwise_data_from_pair_genomes(extent_genome_1, extent_genome_2)
                         for orthologous_pair in pairwise_data:
 
                             gene_col_one_ext_id = int(orthologous_pair[0])
@@ -98,16 +97,20 @@ class Merge_ancestral():
                                 hog_gene_one = extent_genome_1.get_gene_by_ext_id(gene_col_one_ext_id).get_hog(genome_1)
                                 hog_gene_two = extent_genome_2.get_gene_by_ext_id(gene_col_two_ext_id).get_hog(genome_2)
 
-                            # add this relation to orthology graph A NETTOYER PUTAIN
-                            try:
+                            if (hog_gene_one,hog_gene_two) in self.orthology_graph:
                                 self.orthology_graph[(hog_gene_one,hog_gene_two)] += 1
-                            except KeyError:
-                                try:
-                                    self.orthology_graph[(hog_gene_two,hog_gene_one)] += 1
-                                except KeyError:
-                                    self.orthology_graph[(hog_gene_one,hog_gene_two)] = 1
+                            elif (hog_gene_two,hog_gene_one) in self.orthology_graph:
+                                self.orthology_graph[(hog_gene_two,hog_gene_one)] += 1
+                            else:
+                                self.orthology_graph[(hog_gene_one,hog_gene_two)] = 1
 
     def clean_graph_pair(self):
+        """
+        Iterate over all pairs of hogs in the graph and delete pairs (fix the number of relations between the two hogs to 0)
+        with a score under the threshold (parameter_1)
+        :return:
+        """
+
         for (h1, h2), number_relations in self.orthology_graph.items():
             score = lib.get_percentage_orthologous_relations(h1,h2, number_relations)
             if score >= int(settings.Settings.parameter_1):
@@ -116,21 +119,25 @@ class Merge_ancestral():
                 self.orthology_graph[(h1, h2)] = 0
 
     def clean_graph_update(self):
-
+        """
+        For each connected components get from the graph, create a temporary CC obj that contains tempory HOGs obj.
+        This allows to manipulate the CC and its connections without touching the original obj:HOGS.
+        :return: a list of modified CCs based on there internal connectivity.
+        """
         CCs = list()
 
         for con in self.connectedComponents:
-            p = Pseudo_CC(con, self.orthology_graph)
-            max, max_pr = p.find_max_score()
-            while max >= int(settings.Settings.parameter_1):
-                merged_node = p.merge_nodes(max_pr)
-                node1 = max_pr[0]
-                node2 = max_pr[1]
-                p.sub_orthograph.remove(max_pr)
-                modified_nodes = list(p.found_modified_nodes(node1, node2))
-                p.update_subgraph(self.orthology_graph, modified_nodes, merged_node)
-                max, max_pr = p.find_max_score()
-            for node in p.nodes:
+            temporary_connected_component = tmp_CC(con, self.orthology_graph)
+            biggest_edge, biggest_pair = temporary_connected_component.find_max_score()
+            while biggest_edge >= int(settings.Settings.parameter_1):
+                merged_node = temporary_connected_component.merge_nodes(biggest_pair)
+                node1 = biggest_pair[0]
+                node2 = biggest_pair[1]
+                temporary_connected_component.sub_orthology_graph.remove(biggest_pair)
+                modified_nodes = list(temporary_connected_component.found_modified_nodes(node1, node2))
+                temporary_connected_component.update_subgraph(self.orthology_graph, modified_nodes, merged_node)
+                biggest_edge, biggest_pair = temporary_connected_component.find_max_score()
+            for node in temporary_connected_component.temporary_hogs:
                 if node.type == "composed":
                     CCs.append(set(node.hogs))
                     for hog in node.hogs:
@@ -139,6 +146,11 @@ class Merge_ancestral():
         self.connectedComponents = CCs
 
     def search_CC(self):
+        """
+        Use the Unionfind function of Adrian altenhoff "The tip top boom boom tall giant of the mountains" to detect connected components in the
+        orthology graph, only the relations != 0 are consider here.
+        :return:
+        """
         connectedComponents = unionfind.UnionFind()
         for (h1, h2), orthorel in self.orthology_graph.items():
             if orthorel <= 0:
@@ -149,18 +161,24 @@ class Merge_ancestral():
         self.hogComputed = set(self.hogComputed)
         return connectedComponents.get_components()
 
-    def CC_to_HOG(self): #### A NETTOYER
+    def CC_to_HOG(self):
+        '''
+        create a new hog by merging all hogs in a CC
+        :return:
+        '''
 
         for CC in self.connectedComponents:
 
+            # init the hog and its xml element
             new_hog = entity.HOG()
             new_hog.xml = etree.SubElement(settings.Settings.xml_manager.groupsxml, "orthologGroup")
             taxon = etree.SubElement(new_hog.xml, "property")
             taxon.set("name", 'TaxRange')
             taxon.set("value", self.newgenome.taxon)
 
-            cluster_hog_by_genomes = {}
-            cluster_xml_obj_by_genome = {}
+            # group information about all hogs in the CC
+            cluster_hog_by_genomes = {} # cluster hogs depending of their topspecies attribute
+            cluster_xml_obj_by_genome = {} # cluster hogs xml depending on their topspecies, if more than one hog per genome -> in paralogous groups
 
             for genome in self.newgenome.children:
                 cluster_hog_by_genomes[genome] = []
@@ -173,6 +191,7 @@ class Merge_ancestral():
                 if len(genome_hogs) > 1:
                     cluster_xml_obj_by_genome[genome_key] = etree.SubElement(new_hog.xml, "paralogGroup")
 
+            # Magic occurs here just don't ask.. shut.. no!
             for genome in self.newgenome.children:
                 for hog in cluster_hog_by_genomes[genome]:
                     new_hog.merge_with(hog)
@@ -186,24 +205,32 @@ class Merge_ancestral():
             oldHog.update_top_species_and_genes(self.newgenome)
             self.newHOGs.append(oldHog)
 
-class Pseudo_CC(object):
-
-    def __init__(self, CC, orthograph):
-        self.HOGs = CC
-        self.nodes = self.create_nodes_list(self.HOGs)
-        self.sub_orthograph = self.create_subgraph(orthograph)
+class tmp_CC(object):
+    """
+    Temporary connected component composed of temporary_hog use during the cleaning step of the update method.
+    """
+    def __init__(self, CC, orthology_graph):
+        self.temporary_hogs = self.create_tmp_hogs(CC)
+        self.sub_orthology_graph = self.create_subgraph(orthology_graph) # list([tmp_hog1,tmp_hog2, relations])
 
     def create_subgraph(self, orthograph):
+        '''
+        extract from the master graph the relations between all pairs of tmp_hogs !
+        :param orthograph:
+        :return:
+        '''
+
         sub_orthograph = []
-        comb_nodes = itertools.combinations(self.nodes, 2)
+        comb_nodes = itertools.combinations(self.temporary_hogs, 2)
         for i in comb_nodes:
+
             try:
-                score = lib.compute_score_merging_pseudo_nodes(i[0],i[1], orthograph)
+                score = lib.get_percentage_orthologous_relations_between_two_set_of_HOGs(i[0].hogs,i[1].hogs, orthograph)
                 if score > 0:
-                    sub_orthograph.append((i[0],i[1],score ))
+                    sub_orthograph.append((i[0],i[1],score))
             except KeyError:
                 try:
-                    score = lib.compute_score_merging_pseudo_nodes(i[1],i[0], orthograph)
+                    score = lib.get_percentage_orthologous_relations_between_two_set_of_HOGs(i[1].hogs,i[0].hogs, orthograph)
                     if score > 0:
                         sub_orthograph.append((i[0],i[1],score))
                 except KeyError:
@@ -211,66 +238,81 @@ class Pseudo_CC(object):
         return sub_orthograph
 
     def update_subgraph(self, orthograph, modified_nodes, merged_node):
+        '''
+        reconputed all changed made by modifying part of the graph
+        :param orthograph:
+        :param modified_nodes:
+        :param merged_node:
+        :return:
+        '''
         for modif_node in modified_nodes:
             try:
-                self.sub_orthograph.append((merged_node,modif_node,lib.compute_score_merging_pseudo_nodes(merged_node,modif_node, orthograph)))
+                self.sub_orthology_graph.append((merged_node,modif_node,lib.get_percentage_orthologous_relations_between_two_set_of_HOGs(merged_node.hogs,modif_node.hogs, orthograph)))
             except KeyError:
                 try:
-                    self.sub_orthograph.append((merged_node,modif_node,lib.compute_score_merging_pseudo_nodes(modif_node,merged_node, orthograph)))
+                    self.sub_orthology_graph.append((merged_node,modif_node,lib.get_percentage_orthologous_relations_between_two_set_of_HOGs(modif_node.hogs,merged_node.hogs, orthograph)))
                 except KeyError:
                     pass
 
 
     def merge_nodes(self, sub_orthograph_pr):
+        '''
+        create a new obj:tempory_hog and remove old single merged obj:tmp_hog
+        :param sub_orthograph_pr:
+        :return:
+        '''
         merged_hogs = []
-        [ merged_hogs.append(f) for f in sub_orthograph_pr[0].hogs ]
-        [ merged_hogs.append(f) for f in sub_orthograph_pr[1].hogs ]
-        merged_node = Pseudo_node("composed", merged_hogs )
-        self.nodes.remove(sub_orthograph_pr[0])
-        self.nodes.remove(sub_orthograph_pr[1])
-        self.nodes.append(merged_node)
+        [merged_hogs.append(f) for f in sub_orthograph_pr[0].hogs]
+        [merged_hogs.append(f) for f in sub_orthograph_pr[1].hogs]
+        merged_node = temporary_hog("composed", merged_hogs )
+        self.temporary_hogs.remove(sub_orthograph_pr[0])
+        self.temporary_hogs.remove(sub_orthograph_pr[1])
+        self.temporary_hogs.append(merged_node)
         return merged_node
 
     def found_modified_nodes(self, node1, node2):
         modified_nodes = [node1,node2]
         nodes_pr = []
-        for pr in self.sub_orthograph:
+        for pr in self.sub_orthology_graph:
             nodes_pr.append(pr)
         for node_pr in nodes_pr:
             if node1 in node_pr:
                 modified_nodes.append(node_pr[0])
                 modified_nodes.append(node_pr[1])
-                self.sub_orthograph.remove(node_pr)
+                self.sub_orthology_graph.remove(node_pr)
             if node2 in node_pr:
                 modified_nodes.append(node_pr[0])
                 modified_nodes.append(node_pr[1])
-                self.sub_orthograph.remove(node_pr)
+                self.sub_orthology_graph.remove(node_pr)
         modified_nodes = set(modified_nodes)
         modified_nodes.remove(node1)
         modified_nodes.remove(node2)
         return modified_nodes
 
 
-    def create_nodes_list(self, list_HOGs):
-        nodes = []
-        for hog in list_HOGs:
-            node = Pseudo_node("simple",[hog])
-            nodes.append(node)
-        return nodes
+    def create_tmp_hogs(self, list_HOGs):
+        return [temporary_hog("simple",[hog]) for hog in list_HOGs]
 
     def find_max_score(self):
-        max = 0
-        max_pr = None
-        for pr in self.sub_orthograph:
-            if pr[2] > max:
-                max = pr[2]
-                max_pr = pr
-        return  max, max_pr
+        '''
+        find the biggest relations between two hogs in the sub_graph (greatest weighted edge)
+        :return:
+        '''
+        biggest_edge = 0
+        biggest_pair = None
+        for pr in self.sub_orthology_graph:
+            if pr[2] > biggest_edge:
+                biggest_edge = pr[2]
+                biggest_pair = pr
+        return  biggest_edge, biggest_pair
 
 
-class Pseudo_node(object):
+class temporary_hog(object):
+    """
+    temporary hog used to not modify original hogs during the graph updating
+    """
     def __init__(self, type, hogs):
-        self.type = type
+        self.type = type # *simple* if there are composed of one hogs or *composed* if they results of a hog merging
         self.hogs = hogs
 
 

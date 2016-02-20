@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<orthoXML originVersion="Sep 2014" origin="OMA" version="0.3" xmlns="http://orthoXML.org/2011/">
+  <species name="PANTR" NCBITaxId="0">
+    <database name="unknown" version="unknown">
+      <genes>
+        <gene id="8" ext_id="1"/>
+        <gene id="9" ext_id="2"/>
+      </genes>
+    </database>
+  </species>
+  <species name="HUMAN" NCBITaxId="0">
+    <database name="unknown" version="unknown">
+      <genes>
+        <gene id="5" ext_id="1"/>
+        <gene id="6" ext_id="2"/>
+        <gene id="7" ext_id="3"/>
+      </genes>
+    </database>
+  </species>
+  <species name="RATNO" NCBITaxId="0">
+    <database name="unknown" version="unknown">
+      <genes>
+        <gene id="3" ext_id="1"/>
+        <gene id="4" ext_id="2"/>
+      </genes>
+    </database>
+  </species>
+  <species name="MOUSE" NCBITaxId="0">
+    <database name="unknown" version="unknown">
+      <genes>
+        <gene id="0" ext_id="1"/>
+        <gene id="1" ext_id="2"/>
+        <gene id="2" ext_id="3"/>
+      </genes>
+    </database>
+  </species>
+  <groups>
+    <ortholGroup id="0" ext_id="1"/>
+    <ortholGroup id="1" ext_id="2"/>
+    <ortholGroup id="2" ext_id="3"/>
+    <ortholGroup id="3" ext_id="1"/>
+    <ortholGroup id="4" ext_id="2"/>
+    <ortholGroup id="5" ext_id="1"/>
+    <ortholGroup id="6" ext_id="2"/>
+    <ortholGroup id="7" ext_id="3"/>
+    <ortholGroup id="8" ext_id="1"/>
+    <ortholGroup id="9" ext_id="2"/>
+  </groups>
+</orthoXML>
