@@ -74,32 +74,46 @@ def get_percentage_orthologous_relations(hog_1, hog_2, extent_relations):
     score = float(extent_relations)/float(maximum_relations)
     return score * 100
 
-def get_percentage_orthologous_relations_between_two_set_of_HOGs(hogs_1, hogs_2, orthograph):
+def get_percentage_relations_between_two_set_of_HOGs(hogs_1, hogs_2, graph):
     """
     compute the % of extant orthologous relations / total possible relations between two set of hogs
     :param node1:
     :param node2:
-    :param orthograph:
+    :param graph:
     :return:
     """
-    number_pairwise_relations = get_all_pr_between_two_set_of_HOGs(orthograph, hogs_1, hogs_2)
+
+    print("hog1", hogs_1)
+    print("hog2", hogs_2)
+    number_pairwise_relations = get_all_pr_between_two_set_of_HOGs(graph, hogs_1, hogs_2)
+
 
     nbr_genes_hog1 = 0
     nbr_genes_hog2 = 0
     for hog1 in hogs_1:
-        nbr_genes_hog1 += len(hog1.genes)
+        print("h1")
+        for g in hog1.genes.values():
+            for e in g:
+                print(e.ext_id)
+                nbr_genes_hog1 += 1
     for hog2 in hogs_2:
-        nbr_genes_hog2 += len(hog2.genes)
+        print("h2")
+        for g in hog2.genes.values():
+            for e in g:
+                print(e.ext_id)
+                nbr_genes_hog2 += 1
+    print(nbr_genes_hog1,nbr_genes_hog2, "nbr")
+    print(number_pairwise_relations, "pairs")
     maximum_relations = nbr_genes_hog1 * nbr_genes_hog2
     score = float(number_pairwise_relations)/float(maximum_relations)
     score = score * 100
     return score
 
 
-def get_all_pr_between_two_set_of_HOGs(orthograph, list_hogs1, list_hogs2):
+def get_all_pr_between_two_set_of_HOGs(graph, list_hogs1, list_hogs2):
     """
     return the numbers of extant orthologous relations between two set of hogs
-    :param orthograph:
+    :param graph:
     :param list_hogs1:
     :param list_hogs2:
     :return:
@@ -108,10 +122,11 @@ def get_all_pr_between_two_set_of_HOGs(orthograph, list_hogs1, list_hogs2):
     for hog1 in list_hogs1:
         for hog2 in list_hogs2:
             try:
-                pairwise_relations += orthograph[(hog1,hog2)]
+                pairwise_relations += graph[(hog1,hog2)]
+
             except KeyError:
                 try:
-                    pairwise_relations += orthograph[(hog2,hog1)]
+                    pairwise_relations += graph[(hog2,hog1)]
                 except KeyError:
                     pass
 

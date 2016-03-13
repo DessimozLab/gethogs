@@ -1,6 +1,7 @@
 __author__ = 'admin'
 
 from itertools import combinations
+from itertools import combinations_with_replacement
 import time
 import itertools
 import entity
@@ -16,6 +17,8 @@ class Merge_ancestral():
     def __init__(self, newgenome):
         self.newgenome = newgenome
         self.orthology_graph = {} # key: (obj:hog1,obj:hog2) and value: int(number orthologous relations between hog1 and hog2)
+        self.paralogy_graph = {} # key: (obj:hog1,obj:hog2) and value: int(number paralogous relations between hog1 and hog2)
+
         self.connectedComponents = None # connected component of the orthology graph
         self.hogComputed= []
         self.newHOGs = [] # list of HOGs of the newgenomes
@@ -25,6 +28,9 @@ class Merge_ancestral():
 
         start_time = time.time()
         self.create_orthology_graph()
+        if settings.Settings.paralogs_folder:
+            self.create_paralogy_graph()
+            print(self.paralogy_graph)
         print("\t * %s seconds --" % (time.time() - start_time)+ ' Orthology graph created.')
 
 
@@ -84,25 +90,68 @@ class Merge_ancestral():
 
                         # get the pariwise data from pairwise file and iterate over all pairs
                         pairwise_data, pair_inverted = file_manager.get_pairwise_data_from_pair_genomes(extent_genome_1, extent_genome_2)
-                        for orthologous_pair in pairwise_data:
+                        if len(pairwise_data) != 0:
+                            for orthologous_pair in pairwise_data:
 
-                            gene_col_one_ext_id = int(orthologous_pair[0])
-                            gene_col_two_ext_id = int(orthologous_pair[1])
+                                gene_col_one_ext_id = orthologous_pair[0]
+                                gene_col_two_ext_id = orthologous_pair[1]
 
-                            # get hogs related to the orthologous genes
-                            if pair_inverted:
-                                hog_gene_one = extent_genome_1.get_gene_by_ext_id(gene_col_two_ext_id).get_hog(genome_1)
-                                hog_gene_two = extent_genome_2.get_gene_by_ext_id(gene_col_one_ext_id).get_hog(genome_2)
-                            else:
-                                hog_gene_one = extent_genome_1.get_gene_by_ext_id(gene_col_one_ext_id).get_hog(genome_1)
-                                hog_gene_two = extent_genome_2.get_gene_by_ext_id(gene_col_two_ext_id).get_hog(genome_2)
+                                # get hogs related to the orthologous genes
+                                if pair_inverted:
+                                    hog_gene_one = extent_genome_1.get_gene_by_ext_id(gene_col_two_ext_id).get_hog(genome_1)
+                                    hog_gene_two = extent_genome_2.get_gene_by_ext_id(gene_col_one_ext_id).get_hog(genome_2)
+                                else:
+                                    hog_gene_one = extent_genome_1.get_gene_by_ext_id(gene_col_one_ext_id).get_hog(genome_1)
+                                    hog_gene_two = extent_genome_2.get_gene_by_ext_id(gene_col_two_ext_id).get_hog(genome_2)
 
-                            if (hog_gene_one,hog_gene_two) in self.orthology_graph:
-                                self.orthology_graph[(hog_gene_one,hog_gene_two)] += 1
-                            elif (hog_gene_two,hog_gene_one) in self.orthology_graph:
-                                self.orthology_graph[(hog_gene_two,hog_gene_one)] += 1
-                            else:
-                                self.orthology_graph[(hog_gene_one,hog_gene_two)] = 1
+                                if (hog_gene_one,hog_gene_two) in self.orthology_graph:
+                                    self.orthology_graph[(hog_gene_one,hog_gene_two)] += 1
+                                elif (hog_gene_two,hog_gene_one) in self.orthology_graph:
+                                    self.orthology_graph[(hog_gene_two,hog_gene_one)] += 1
+                                else:
+                                    self.orthology_graph[(hog_gene_one,hog_gene_two)] = 1
+    def create_paralogy_graph(self):
+        '''
+        For each combinations of children genomes pairs, update the graph with paralogous relations found
+        :return:
+        '''
+
+        # try all chidren combinations possible (in case of multifurcation)
+
+        dict_species = {}
+        for child in self.newgenome.children:
+            for species_name in child.species:
+                dict_species[entity.Genome.zoo[species_name]]=child
+
+        # get all pair of extant genomes
+        for genomes_pair in combinations_with_replacement(dict_species.keys(), 2):
+            extent_genome_1 = genomes_pair[0]
+            extent_genome_2 = genomes_pair[1]
+
+            # get the orthologs data from pairwise file and iterate over all pairs
+            pairwise_data, pair_inverted = file_manager.get_paralogs_data_from_pair_genomes(extent_genome_1, extent_genome_2)
+            if len(pairwise_data) != 0:
+
+                for paralogous_pair in pairwise_data:
+
+                    gene_col_one_ext_id = paralogous_pair[0]
+                    gene_col_two_ext_id = paralogous_pair[1]
+
+                    # get hogs related to the orthologous genes
+                    if pair_inverted:
+                        hog_gene_one = extent_genome_1.get_gene_by_ext_id(gene_col_two_ext_id).get_hog(dict_species[extent_genome_1])
+                        hog_gene_two = extent_genome_2.get_gene_by_ext_id(gene_col_one_ext_id).get_hog(dict_species[extent_genome_2])
+                    else:
+                        hog_gene_one = extent_genome_1.get_gene_by_ext_id(gene_col_one_ext_id).get_hog(dict_species[extent_genome_1])
+                        hog_gene_two = extent_genome_2.get_gene_by_ext_id(gene_col_two_ext_id).get_hog(dict_species[extent_genome_2])
+
+                    if (hog_gene_one,hog_gene_two) in self.paralogy_graph:
+                        self.paralogy_graph[(hog_gene_one,hog_gene_two)] += 1
+                    elif (hog_gene_two,hog_gene_one) in self.paralogy_graph:
+                        self.paralogy_graph[(hog_gene_two,hog_gene_one)] += 1
+                    else:
+                        self.paralogy_graph[(hog_gene_one,hog_gene_two)] = 1
+
 
     def clean_graph_pair(self):
         """
@@ -127,7 +176,7 @@ class Merge_ancestral():
         CCs = list()
 
         for con in self.connectedComponents:
-            temporary_connected_component = tmp_CC(con, self.orthology_graph)
+            temporary_connected_component = tmp_CC(con, self)
             biggest_edge, biggest_pair = temporary_connected_component.find_max_score()
             while biggest_edge >= int(settings.Settings.parameter_1):
                 merged_node = temporary_connected_component.merge_nodes(biggest_pair)
@@ -135,7 +184,7 @@ class Merge_ancestral():
                 node2 = biggest_pair[1]
                 temporary_connected_component.sub_orthology_graph.remove(biggest_pair)
                 modified_nodes = list(temporary_connected_component.found_modified_nodes(node1, node2))
-                temporary_connected_component.update_subgraph(self.orthology_graph, modified_nodes, merged_node)
+                temporary_connected_component.update_subgraph(self, modified_nodes, merged_node)
                 biggest_edge, biggest_pair = temporary_connected_component.find_max_score()
             for node in temporary_connected_component.temporary_hogs:
                 if node.type == "composed":
@@ -209,35 +258,44 @@ class tmp_CC(object):
     """
     Temporary connected component composed of temporary_hog use during the cleaning step of the update method.
     """
-    def __init__(self, CC, orthology_graph):
+    def __init__(self, CC, merge_ancestral):
         self.temporary_hogs = self.create_tmp_hogs(CC)
-        self.sub_orthology_graph = self.create_subgraph(orthology_graph) # list([tmp_hog1,tmp_hog2, relations])
+        self.sub_orthology_graph = self.create_subgraph(merge_ancestral) # list([tmp_hog1,tmp_hog2, relations])
 
-    def create_subgraph(self, orthograph):
+    def create_subgraph(self, merge_ancestral):
         '''
         extract from the master graph the relations between all pairs of tmp_hogs !
         :param orthograph:
         :return:
         '''
-
+        print("------")
         sub_orthograph = []
+        print("tmo_hog", self.temporary_hogs )
         comb_nodes = itertools.combinations(self.temporary_hogs, 2)
-        for i in comb_nodes:
 
+        for i in comb_nodes:
+            print(i)
             try:
-                score = lib.get_percentage_orthologous_relations_between_two_set_of_HOGs(i[0].hogs,i[1].hogs, orthograph)
+                score = lib.get_percentage_relations_between_two_set_of_HOGs(i[0].hogs,i[1].hogs, merge_ancestral.orthology_graph)
+                if settings.Settings.paralogs_folder:
+                    score += lib.get_percentage_relations_between_two_set_of_HOGs(i[0].hogs,i[1].hogs, merge_ancestral.paralogy_graph)
+                print(score)
                 if score > 0:
                     sub_orthograph.append((i[0],i[1],score))
             except KeyError:
                 try:
-                    score = lib.get_percentage_orthologous_relations_between_two_set_of_HOGs(i[1].hogs,i[0].hogs, orthograph)
+                    score = lib.get_percentage_relations_between_two_set_of_HOGs(i[1].hogs,i[0].hogs, merge_ancestral.orthology_graph)
+                    if settings.Settings.paralogs_folder:
+                        score += lib.get_percentage_relations_between_two_set_of_HOGs(i[0].hogs,i[1].hogs, merge_ancestral.paralogy_graph)
+                    print(score)
+
                     if score > 0:
                         sub_orthograph.append((i[0],i[1],score))
                 except KeyError:
                     pass
         return sub_orthograph
 
-    def update_subgraph(self, orthograph, modified_nodes, merged_node):
+    def update_subgraph(self, merge_ancestral, modified_nodes, merged_node):
         '''
         reconputed all changed made by modifying part of the graph
         :param orthograph:
@@ -245,12 +303,17 @@ class tmp_CC(object):
         :param merged_node:
         :return:
         '''
+        print("updating")
         for modif_node in modified_nodes:
+            score = lib.get_percentage_relations_between_two_set_of_HOGs(merged_node.hogs,modif_node.hogs, merge_ancestral.orthology_graph)
+            if settings.Settings.paralogs_folder:
+                score += lib.get_percentage_relations_between_two_set_of_HOGs(merged_node.hogs,modif_node.hogs, merge_ancestral.paralogy_graph)
+                print(score)
             try:
-                self.sub_orthology_graph.append((merged_node,modif_node,lib.get_percentage_orthologous_relations_between_two_set_of_HOGs(merged_node.hogs,modif_node.hogs, orthograph)))
+                self.sub_orthology_graph.append((merged_node,modif_node,score))
             except KeyError:
                 try:
-                    self.sub_orthology_graph.append((merged_node,modif_node,lib.get_percentage_orthologous_relations_between_two_set_of_HOGs(modif_node.hogs,merged_node.hogs, orthograph)))
+                    self.sub_orthology_graph.append((merged_node,modif_node,score))
                 except KeyError:
                     pass
 

@@ -45,12 +45,22 @@ def loadfile_columns_one_two(file):
     '''
 
     data =  np.genfromtxt(file, dtype=None, comments="#", delimiter="", usecols=(0,1))
-    try:
-        len(data[0])
+
+    if len(data) == 0:
         return data
-    except TypeError:
+
+    elif data.shape == (2,):
         data = [data]
         return data
+    else:
+        try:
+            len(data[0])
+            return data
+        except TypeError:
+            data = [data]
+            return data
+
+
 
 def get_list_files(mypath):
     onlyfiles = [ f for f in os.listdir(mypath) if isfile(join(mypath,f)) ]
@@ -104,6 +114,20 @@ def get_pairwise_data_from_pair_genomes(genome_1, genome_2):
     pairwise_data = loadfile_columns_one_two(file)
     return pairwise_data, inverted
 
+def get_paralogs_data_from_pair_genomes(genome_1, genome_2):
+    '''
+    return the file with paralogous data for a pair of genomes, and return if they are inverted or not in the data columns
+    :param genome_1:
+    :param genome_2:
+    :return:
+    '''
+
+    inverted, file = get_paralogs_file_genomes_pair_standalone_folder_inverted(genome_1, genome_2)
+    file = os.path.join(settings.Settings.paralogs_folder, file)
+
+    paralogous_data = loadfile_columns_one_two(file)
+    return paralogous_data, inverted
+
 ## Standalone type (listed) #
 #############################
 
@@ -128,7 +152,42 @@ def get_file_genomes_pair_standalone_folder_inverted(genome_1, genome_2):
                 return True, file
     return
 
+def get_paralogs_file_genomes_pair_standalone_folder_inverted(genome_1, genome_2):
+    '''
+    return for a pair of genomes the related pairwise filename + if their order in file structure
+    :param genome_1:
+    :param genome_2:
+    :return:
+    '''
+    files = get_list_files(settings.Settings.paralogs_folder)
+    for file in files:
+        file_name_no_ext = file.split(os.extsep, 1)[0]
+        array_name = file_name_no_ext.split("-")
+        g_1 = array_name[0]
+        g_2 = array_name[1]
+        if g_1 == genome_1.species[0]:
+            if g_2 == genome_2.species[0]:
+                return False, file
+        if g_1 == genome_2.species[0]:
+            if g_2 == genome_1.species[0]:
+                return True, file
+    return
+
 def get_list_species_from_standalone_folder(input_folder):
+    '''
+    return species name from the file names (species1-species2.ext) of the pairwise folder
+    :param input_folder:
+    :return:
+    '''
+    list_species = []
+    for file in get_list_files(input_folder):
+        file_name_no_ext = file.split(os.extsep, 1)[0]
+        array_name = file_name_no_ext.split("-")
+        for species_name in array_name:
+            list_species.append(species_name)
+    return list(set(list_species))
+
+def get_list_species_from_paralogs_folder(input_folder):
     '''
     return species name from the file names (species1-species2.ext) of the pairwise folder
     :param input_folder:

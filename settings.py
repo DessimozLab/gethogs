@@ -9,6 +9,7 @@ class Settings(object):
     '''
 
     pairwise_folder = None
+    paralogs_folder = None
     input_type = None
     method_merge = None
     input_tree = None
@@ -43,19 +44,31 @@ class Settings(object):
         # Check consistency between species tree and pairwise files
         species_tree = Phylo.read(cls.input_tree, "newick")
         species_input_tree = [sp.name for sp in species_tree.get_terminals()]
-        species_input_file = file_manager.get_list_species_from_pairwise_folder(cls.pairwise_folder, cls.input_type)
+        species_orthologs_file = file_manager.get_list_species_from_pairwise_folder(cls.pairwise_folder, cls.input_type)
 
-        if set(species_input_file) != set(species_input_tree):
+        if set(species_orthologs_file) != set(species_input_tree):
             print('Inconsistency between species in the species tree and the pairwise folder \n')
             print('Species in the tree:', species_input_tree)
-            print('Species in the pairwise folder:', species_input_file )
+            print('Species in the pairwise folder:', species_orthologs_file )
             sys.exit(1)
+
+        if cls.paralogs_folder:
+            species_paralogs_file = file_manager.get_list_species_from_paralogs_folder(cls.paralogs_folder)
+            if set(species_paralogs_file) != set(species_input_tree):
+                print('Inconsistency between species in the species tree and the paralogs folder \n')
+                print('Species in the tree:', species_input_tree)
+                print('Species in the paralogs folder:', species_paralogs_file )
+                sys.exit(1)
 
         cls.list_species = species_input_tree
 
     @classmethod
     def set_pairwise_folder(cls, parameter):
         cls.pairwise_folder = parameter
+
+    @classmethod
+    def set_paralogs_folder(cls, parameter):
+        cls.paralogs_folder = parameter
 
     @classmethod
     def set_input_type(cls, parameter):

@@ -12,9 +12,9 @@ from settings import Settings
 def main(argv):
 
     try:
-        opts, args = getopt.getopt(argv,"hi:t:m:p:o:s:")
+        opts, args = getopt.getopt(argv,"hi:t:m:p:o:s:k:")
     except getopt.GetoptError:
-        print('Usage: warthogs.py -i pairwise_folder -t input_type -m method_merge -p parameter_1 -o output_file -s species_tree')
+        print('Usage: warthogs.py -i orthologs_folder -k paralogs_folder -t input_type -m method_merge -p parameter_1 -o output_file -s species_tree')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-h"):
@@ -24,20 +24,23 @@ def main(argv):
                   '     Usage: warthogs.py -i pairwise_folder -t input_type -m method_merge -p parameter_1 -o output_file -s species_tree \n'
                   '\n  \033[1mDESCRIPTION\033[0m\n'
                   '     The following arguments are available:\n'
-                  '\n     \033[1m-i\033[0m  Folder with all orthologous pairwise relations files.\n'
+                  '\n     \033[1m-i\033[0m  Folder with all orthologous relations files.\n'
+                  '\n     \033[1m-k\033[0m  Folder with all paralogous relations files.\n'
                   "\n     \033[1m-t\033[0m  Type of structure of the orthologous pairwise relations folder, *standalone* if all files are contained in a *PairwiseOrthologs* folder (files: species_name1-species_name2.extension) or *oma* if all files are contained in a nested oma-type folder structures (dir:species_name1, files inside:species_name2.extension) \n"
                   "\n     \033[1m-m\033[0m  The method used to clean the orthology graph during the reconstruction of the ancestral HOGs. You can select *pair* for cleaning the edges pairs of HOGs by pairs (-p required to specify the minumal % of relations mandatory of be kept) or *update* if you want to update the orthology graph each time you modify a pair of hogs (-p required to specify the minumal % of relations mandatory of be kept).\n"
                   '\n     \033[1m-p\033[0m  Parameter_1 used by selected method.\n'
                   "\n     \033[1m-o\033[0m  Output file name (with orthxml extension). \n"
                   "\n     \033[1m-s\033[0m  Newick file with the species tree use as skeleton for traversal.\n"
                   '\n  \033[1mIMPORTANT\033[0m \n'
-                  '\n       - Pairwise orthologous relations files (standalone): No *-* inside you species name. \n'
-                  '\n       - Pairwise orthologous relations files (oma): No *.* inside you species name. \n'
+                  '\n       - Pairwise orthologous/paralogous relations files (standalone): No *-* inside you species name. \n'
+                  '\n       - Pairwise orthologous/paralogous relations files (oma): No *.* inside you species name. \n'
                   '\n       - Parameter_1 (pair + update): 0 < value <= 100. \n'
                   )
             sys.exit()
         elif opt in ("-i"):
                 Settings.set_pairwise_folder(str(arg))
+        elif opt in ("-k"):
+                Settings.set_paralogs_folder(str(arg))
         elif opt in ("-t"):
                 Settings.set_input_type(str(arg))
         elif opt in ("-m"):
