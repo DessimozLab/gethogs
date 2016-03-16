@@ -45,7 +45,7 @@ class Settings(object):
         species_tree = Phylo.read(cls.input_tree, "newick")
         species_input_tree = [sp.name for sp in species_tree.get_terminals()]
         species_orthologs_file = file_manager.get_list_species_from_pairwise_folder(cls.pairwise_folder, cls.input_type)
-
+        print(species_orthologs_file)
         if set(species_orthologs_file) != set(species_input_tree):
             print('Inconsistency between species in the species tree and the pairwise folder \n')
             print('Species in the tree:', species_input_tree)
