@@ -36,12 +36,16 @@ class Genome(object):
         self.children = [self] # att:children only composed of the obj:Genome (trick to handle ancestral and extent genomes together)
         self.type = "extent"
         list_genes = file_manager.get_list_proteins_from_pairwise_folder(Settings.pairwise_folder, Settings.input_type, node.name)
+        if Settings.paralogs_folder:
+            list_genes_paralogs = file_manager.get_list_proteins_from_pairwise_folder(Settings.paralogs_folder, "standalone", node.name)
+            self.create_genes_hogs_extent_genomes(list_genes_paralogs)
         self.create_genes_hogs_extent_genomes(list_genes)
         Genome.zoo[node.name] = self
         print('-> Genome of '+ str(self.species[0]) + " (composed of " + str(len(list_genes)) +  " genes) created.")
 
     def get_gene_by_ext_id(self, ext_id):
         return self.genes[ext_id]
+
 
     def create_genes_hogs_extent_genomes(self, list_genes):
         '''

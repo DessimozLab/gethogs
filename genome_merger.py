@@ -30,7 +30,7 @@ class Merge_ancestral():
         self.create_orthology_graph()
         if settings.Settings.paralogs_folder:
             self.create_paralogy_graph()
-            print(self.paralogy_graph)
+            #print(self.paralogy_graph)
         print("\t * %s seconds --" % (time.time() - start_time)+ ' Orthology graph created.')
 
 
@@ -124,7 +124,7 @@ class Merge_ancestral():
                 dict_species[entity.Genome.zoo[species_name]]=child
 
         # get all pair of extant genomes
-        for genomes_pair in combinations_with_replacement(dict_species.keys(), 2):
+        for genomes_pair in combinations(dict_species.keys(), 2):
             extent_genome_1 = genomes_pair[0]
             extent_genome_2 = genomes_pair[1]
 
@@ -268,18 +268,14 @@ class tmp_CC(object):
         :param orthograph:
         :return:
         '''
-        print("------")
         sub_orthograph = []
-        print("tmo_hog", self.temporary_hogs )
         comb_nodes = itertools.combinations(self.temporary_hogs, 2)
 
         for i in comb_nodes:
-            print(i)
             try:
                 score = lib.get_percentage_relations_between_two_set_of_HOGs(i[0].hogs,i[1].hogs, merge_ancestral.orthology_graph)
                 if settings.Settings.paralogs_folder:
                     score += lib.get_percentage_relations_between_two_set_of_HOGs(i[0].hogs,i[1].hogs, merge_ancestral.paralogy_graph)
-                print(score)
                 if score > 0:
                     sub_orthograph.append((i[0],i[1],score))
             except KeyError:
@@ -287,8 +283,6 @@ class tmp_CC(object):
                     score = lib.get_percentage_relations_between_two_set_of_HOGs(i[1].hogs,i[0].hogs, merge_ancestral.orthology_graph)
                     if settings.Settings.paralogs_folder:
                         score += lib.get_percentage_relations_between_two_set_of_HOGs(i[0].hogs,i[1].hogs, merge_ancestral.paralogy_graph)
-                    print(score)
-
                     if score > 0:
                         sub_orthograph.append((i[0],i[1],score))
                 except KeyError:
@@ -303,12 +297,10 @@ class tmp_CC(object):
         :param merged_node:
         :return:
         '''
-        print("updating")
         for modif_node in modified_nodes:
             score = lib.get_percentage_relations_between_two_set_of_HOGs(merged_node.hogs,modif_node.hogs, merge_ancestral.orthology_graph)
             if settings.Settings.paralogs_folder:
                 score += lib.get_percentage_relations_between_two_set_of_HOGs(merged_node.hogs,modif_node.hogs, merge_ancestral.paralogy_graph)
-                print(score)
             try:
                 self.sub_orthology_graph.append((merged_node,modif_node,score))
             except KeyError:

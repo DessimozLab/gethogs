@@ -160,7 +160,9 @@ def get_paralogs_file_genomes_pair_standalone_folder_inverted(genome_1, genome_2
     :return:
     '''
     files = get_list_files(settings.Settings.paralogs_folder)
+
     for file in files:
+
         file_name_no_ext = file.split(os.extsep, 1)[0]
         array_name = file_name_no_ext.split("-")
         g_1 = array_name[0]

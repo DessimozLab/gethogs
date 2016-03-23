@@ -83,27 +83,19 @@ def get_percentage_relations_between_two_set_of_HOGs(hogs_1, hogs_2, graph):
     :return:
     """
 
-    print("hog1", hogs_1)
-    print("hog2", hogs_2)
     number_pairwise_relations = get_all_pr_between_two_set_of_HOGs(graph, hogs_1, hogs_2)
 
 
     nbr_genes_hog1 = 0
     nbr_genes_hog2 = 0
     for hog1 in hogs_1:
-        print("h1")
         for g in hog1.genes.values():
             for e in g:
-                print(e.ext_id)
                 nbr_genes_hog1 += 1
     for hog2 in hogs_2:
-        print("h2")
         for g in hog2.genes.values():
             for e in g:
-                print(e.ext_id)
                 nbr_genes_hog2 += 1
-    print(nbr_genes_hog1,nbr_genes_hog2, "nbr")
-    print(number_pairwise_relations, "pairs")
     maximum_relations = nbr_genes_hog1 * nbr_genes_hog2
     score = float(number_pairwise_relations)/float(maximum_relations)
     score = score * 100
