@@ -27,10 +27,9 @@ class Merge_ancestral():
     def do_the_merge(self):
 
         start_time = time.time()
-        self.create_orthology_graph()
+        self.update_graph(self.orthology_graph, "O", 1)
         if settings.Settings.paralogs_folder:
-            self.create_paralogy_graph()
-            #print(self.paralogy_graph)
+            self.update_graph(self.orthology_graph, "P", -1)
         print("\t * %s seconds --" % (time.time() - start_time)+ ' Orthology graph created.')
 
 
@@ -70,7 +69,7 @@ class Merge_ancestral():
         self.update_solo_HOGs(list_hogs_not_computed)
         print("\t * %s seconds -- " % (time.time() - start_time) + str(len(list_hogs_not_computed)) + ' solo HOGs have been updated. ')
 
-    def create_orthology_graph(self):
+    def update_graph(self, graph_to_update, relType, score):
         '''
         For each combinations of children genomes pairs, update the graph with orthologous relations found
         :return:
@@ -88,13 +87,17 @@ class Merge_ancestral():
                     for species_name_2 in genome_2.species:
                         extent_genome_2 = entity.Genome.zoo[species_name_2]
 
-                        # get the pariwise data from pairwise file and iterate over all pairs
-                        pairwise_data, pair_inverted = file_manager.get_pairwise_data_from_pair_genomes(extent_genome_1, extent_genome_2)
-                        if len(pairwise_data) != 0:
-                            for orthologous_pair in pairwise_data:
+                        # get the pairwise data from pairwise file and iterate over all pairs
+                        if relType == "O":
+                            pairwise_data, pair_inverted = file_manager.get_pairwise_data_from_pair_genomes(extent_genome_1, extent_genome_2)
+                        elif relType == "P":
+                            pairwise_data, pair_inverted = file_manager.get_paralogs_data_from_pair_genomes(extent_genome_1, extent_genome_2)
 
-                                gene_col_one_ext_id = orthologous_pair[0]
-                                gene_col_two_ext_id = orthologous_pair[1]
+                        if len(pairwise_data) != 0:
+                            for pair in pairwise_data:
+
+                                gene_col_one_ext_id = pair[0]
+                                gene_col_two_ext_id = pair[1]
 
                                 # get hogs related to the orthologous genes
                                 if pair_inverted:
@@ -104,53 +107,13 @@ class Merge_ancestral():
                                     hog_gene_one = extent_genome_1.get_gene_by_ext_id(gene_col_one_ext_id).get_hog(genome_1)
                                     hog_gene_two = extent_genome_2.get_gene_by_ext_id(gene_col_two_ext_id).get_hog(genome_2)
 
-                                if (hog_gene_one,hog_gene_two) in self.orthology_graph:
-                                    self.orthology_graph[(hog_gene_one,hog_gene_two)] += 1
-                                elif (hog_gene_two,hog_gene_one) in self.orthology_graph:
-                                    self.orthology_graph[(hog_gene_two,hog_gene_one)] += 1
+                                if (hog_gene_one,hog_gene_two) in graph_to_update:
+                                    graph_to_update[(hog_gene_one,hog_gene_two)] += score
+                                elif (hog_gene_two,hog_gene_one) in graph_to_update:
+                                    graph_to_update[(hog_gene_two,hog_gene_one)] += score
                                 else:
-                                    self.orthology_graph[(hog_gene_one,hog_gene_two)] = 1
-    def create_paralogy_graph(self):
-        '''
-        For each combinations of children genomes pairs, update the graph with paralogous relations found
-        :return:
-        '''
+                                    graph_to_update[(hog_gene_one,hog_gene_two)] = score
 
-        # try all chidren combinations possible (in case of multifurcation)
-
-        dict_species = {}
-        for child in self.newgenome.children:
-            for species_name in child.species:
-                dict_species[entity.Genome.zoo[species_name]]=child
-
-        # get all pair of extant genomes
-        for genomes_pair in combinations(dict_species.keys(), 2):
-            extent_genome_1 = genomes_pair[0]
-            extent_genome_2 = genomes_pair[1]
-
-            # get the orthologs data from pairwise file and iterate over all pairs
-            pairwise_data, pair_inverted = file_manager.get_paralogs_data_from_pair_genomes(extent_genome_1, extent_genome_2)
-            if len(pairwise_data) != 0:
-
-                for paralogous_pair in pairwise_data:
-
-                    gene_col_one_ext_id = paralogous_pair[0]
-                    gene_col_two_ext_id = paralogous_pair[1]
-
-                    # get hogs related to the orthologous genes
-                    if pair_inverted:
-                        hog_gene_one = extent_genome_1.get_gene_by_ext_id(gene_col_two_ext_id).get_hog(dict_species[extent_genome_1])
-                        hog_gene_two = extent_genome_2.get_gene_by_ext_id(gene_col_one_ext_id).get_hog(dict_species[extent_genome_2])
-                    else:
-                        hog_gene_one = extent_genome_1.get_gene_by_ext_id(gene_col_one_ext_id).get_hog(dict_species[extent_genome_1])
-                        hog_gene_two = extent_genome_2.get_gene_by_ext_id(gene_col_two_ext_id).get_hog(dict_species[extent_genome_2])
-
-                    if (hog_gene_one,hog_gene_two) in self.paralogy_graph:
-                        self.paralogy_graph[(hog_gene_one,hog_gene_two)] += 1
-                    elif (hog_gene_two,hog_gene_one) in self.paralogy_graph:
-                        self.paralogy_graph[(hog_gene_two,hog_gene_one)] += 1
-                    else:
-                        self.paralogy_graph[(hog_gene_one,hog_gene_two)] = 1
 
 
     def clean_graph_pair(self):
