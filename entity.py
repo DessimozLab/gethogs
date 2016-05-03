@@ -2,6 +2,7 @@ __author__ = 'admin'
 
 import file_manager
 from settings import Settings
+from statistic_tracker import StatisticTracker
 import genome_merger
 import lib
 
@@ -37,11 +38,12 @@ class Genome(object):
         self.type = "extent"
         list_genes = file_manager.get_list_proteins_from_pairwise_folder(Settings.pairwise_folder, Settings.input_type, node.name)
         if Settings.paralogs_folder:
-            list_genes_paralogs = file_manager.get_list_proteins_from_pairwise_folder(Settings.paralogs_folder, "standalone", node.name)
-            self.create_genes_hogs_extent_genomes(list_genes_paralogs)
+            list_genes += file_manager.get_list_proteins_from_pairwise_folder(Settings.paralogs_folder, "standalone", node.name)
+        list_genes = list(set(list_genes))
         self.create_genes_hogs_extent_genomes(list_genes)
         Genome.zoo[node.name] = self
-        print('-> Genome of '+ str(self.species[0]) + " (composed of " + str(len(list_genes)) +  " genes) created.")
+        print('-> Genome of '+ str(self.species[0]) + " (composed of " + str(len(self.genes.keys())) +  " genes) created.")
+        StatisticTracker.add_extent_genome_stat(self.species[0], len(self.genes.keys()))
 
     def get_gene_by_ext_id(self, ext_id):
         return self.genes[ext_id]
@@ -53,6 +55,7 @@ class Genome(object):
         :param list_genes:
         :return:
         '''
+
         for gene_ext_id in list_genes:
             gene = Gene(gene_ext_id, self)
             hog = HOG()
@@ -68,6 +71,7 @@ class Genome(object):
             for species in genome.species:
                 self.species.append(species)
         self.set_taxon_name(node)
+        StatisticTracker.add_taxanomic_range(self.taxon)
         print('-- Creation of the ancestral genome at ' +  str(self.taxon) + ":")
         merge = genome_merger.Merge_ancestral(self)
         self.HOGS = merge.newHOGs

@@ -7,6 +7,7 @@ import file_manager
 from Bio import Phylo
 import time as time
 from settings import Settings
+from statistic_tracker import StatisticTracker
 
 
 def main(argv):
@@ -73,6 +74,14 @@ def main(argv):
     lib.recursive_traversal(backbone_tree.root)
 
     Settings.xml_manager.finish_xml()
+    print StatisticTracker.cc_per_level
+    print StatisticTracker.hog_per_level
+    print StatisticTracker.levels
+    print StatisticTracker.notmerged_per_level
+    print StatisticTracker.nr_genes
+    print StatisticTracker.nr_genes_per_genome
+    print StatisticTracker.merged_per_level
+    print StatisticTracker.time_per_level
 
     ############################
     end_time = time.time()
@@ -83,6 +92,7 @@ def main(argv):
 
 if __name__ == "__main__":
     Settings = Settings()
+    StatisticTracker = StatisticTracker()
     main(sys.argv[1:])
 
 

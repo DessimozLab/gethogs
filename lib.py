@@ -1,6 +1,7 @@
 import time
 import entity
 from Bio import Phylo
+import statistic_tracker
 
 
 def recursive_traversal(node):
@@ -20,6 +21,7 @@ def recursive_traversal(node):
             node.genome = entity.Genome()
             node.genome.init_ancestral_genomes(node)
             end_time = time.time()
+            statistic_tracker.StatisticTracker.set_time_per_level(node.genome.taxon, end_time - start_time )
             print("<- %s seconds." % (end_time - start_time))
             print("\n")
 

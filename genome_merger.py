@@ -7,6 +7,7 @@ import itertools
 import entity
 import file_manager
 import settings
+import statistic_tracker
 import lib
 import unionfind
 import lxml.etree as etree
@@ -67,6 +68,7 @@ class Merge_ancestral():
         list_all_hogs_in_children = set(list_all_hogs_in_children)
         list_hogs_not_computed = list(set(list_all_hogs_in_children) - set(self.hogComputed))
         self.update_solo_HOGs(list_hogs_not_computed)
+        statistic_tracker.StatisticTracker.add_level_stat(self.newgenome.taxon, len(self.connectedComponents), len(self.hogComputed), len(list_hogs_not_computed), len(self.newHOGs))
         print("\t * %s seconds -- " % (time.time() - start_time) + str(len(list_hogs_not_computed)) + ' solo HOGs have been updated. ')
 
     def update_graph(self, graph_to_update, relType, score):

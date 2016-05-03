@@ -183,7 +183,6 @@ def get_list_species_from_standalone_folder(input_folder):
     '''
     list_species = []
     for file in get_list_files(input_folder):
-        print(file)
         file_name_no_ext = file.split(os.extsep, 1)[0]
         array_name = file_name_no_ext.split("-")
         for species_name in array_name:
