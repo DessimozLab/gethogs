@@ -74,14 +74,14 @@ def main(argv):
     lib.recursive_traversal(backbone_tree.root)
 
     Settings.xml_manager.finish_xml()
-    print StatisticTracker.cc_per_level
-    print StatisticTracker.hog_per_level
-    print StatisticTracker.levels
-    print StatisticTracker.notmerged_per_level
-    print StatisticTracker.nr_genes
-    print StatisticTracker.nr_genes_per_genome
-    print StatisticTracker.merged_per_level
-    print StatisticTracker.time_per_level
+    print "cc_per_level", StatisticTracker.cc_per_level
+    print "hog_per_level",StatisticTracker.hog_per_level
+    print "levels",StatisticTracker.levels
+    print "notmerged_per_level",StatisticTracker.notmerged_per_level
+    print "nr_genes",StatisticTracker.nr_genes
+    print "nr_genes_per_genome",StatisticTracker.nr_genes_per_genome
+    print "merged_per_level",StatisticTracker.merged_per_level
+    print "time_per_level",StatisticTracker.time_per_level
 
     ############################
     end_time = time.time()

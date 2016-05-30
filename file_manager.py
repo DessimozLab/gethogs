@@ -360,7 +360,7 @@ class XML_manager(object):
             for ext_id, gene_obj in species.genes.iteritems():
                 gene_xml = etree.SubElement(genes_xml, "gene")
                 gene_xml.set("id", str(gene_obj.int_id))
-                gene_xml.set("ext_id", str(gene_obj.ext_id))
+                gene_xml.set("protId", str(gene_obj.ext_id))
 
     def create_xml_solohog(self, hog):
         '''
@@ -371,7 +371,7 @@ class XML_manager(object):
         hog.xml = etree.SubElement(self.groupsxml, "geneRef")
         gene = hog.genes[hog.topspecie][0]
         hog.xml.set('id',str(gene.int_id))
-        hog.xml.set("ext_id", str(gene.ext_id))
+        #hog.xml.set("ext_id", str(gene.ext_id))
 
     def delete_solohog(self):
         '''
