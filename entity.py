@@ -66,6 +66,8 @@ class Genome(object):
 
     # Ancestral genomes function
     def init_ancestral_genomes(self, node):
+        if Settings.dynamic_treshold:
+            self.taxon_treshold = node.threshold
         self.children = [child.genome for child in node]
         for genome in self.children:
             for species in genome.species:
@@ -96,6 +98,7 @@ class HOG(object):
         self.xml = None # related orthologous groups in the xml
         self.topspecie = None # oldest obj:Genome where this hog is found (for taxon updating matters)
         self.id = HOG.IdCount
+        self.unmerged_count = 0
         HOG.IdCount += 1
 
     def init_solohog(self, gene, species):

@@ -19,6 +19,8 @@ class Settings(object):
     list_species = None
     folder_structure = None
     genomes_sizes = None
+    dynamic_treshold = False
+    unmerged_treshold = False
 
     @classmethod
     def check_required_argument(cls):
@@ -77,6 +79,14 @@ class Settings(object):
     @classmethod
     def set_input_type(cls, parameter):
         cls.input_type = parameter
+
+    @classmethod
+    def set_dynamic_target_threshold(cls, parameter):
+        cls.dynamic_treshold = parameter
+
+    @classmethod
+    def set_unmerged_threshold(cls, parameter):
+        cls.unmerged_treshold = parameter
 
     @classmethod
     def set_method_merge(cls, parameter):

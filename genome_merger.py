@@ -19,7 +19,7 @@ class Merge_ancestral():
         self.newgenome = newgenome
         self.orthology_graph = {} # key: (obj:hog1,obj:hog2) and value: int(number orthologous relations between hog1 and hog2)
         self.paralogy_graph = {} # key: (obj:hog1,obj:hog2) and value: int(number paralogous relations between hog1 and hog2)
-
+        self.unmerged_counter = 0
         self.connectedComponents = None # connected component of the orthology graph
         self.hogComputed= []
         self.newHOGs = [] # list of HOGs of the newgenomes
@@ -36,7 +36,12 @@ class Merge_ancestral():
 
         if settings.Settings.method_merge == "pair":
             start_time = time.time()
-            self.clean_graph_pair()
+            if settings.Settings.dynamic_treshold:
+                print("\t \t --> dynamic merging treshold: " + str(self.newgenome.taxon_treshold) + ".")
+                self.clean_graph_pair(self.newgenome.taxon_treshold)
+            else:
+
+                self.clean_graph_pair(settings.Settings.parameter_1)
             print("\t * %s seconds --" % (time.time() - start_time)+ ' Orthology graph cleaned.')
 
             start_time = time.time()
@@ -59,6 +64,7 @@ class Merge_ancestral():
         start_time = time.time()
         self.CC_to_HOG()
         print("\t * %s seconds -- " % (time.time() - start_time)+ str(len(self.hogComputed)) + ' HOGs merged into ' + str(len(self.newHOGs)) + ' HOGs')
+        print("\t \t --> HOGs frozen: " + str(self.unmerged_counter) + ".")
 
         start_time = time.time()
         list_all_hogs_in_children = []
@@ -67,6 +73,15 @@ class Merge_ancestral():
                 list_all_hogs_in_children.append(hog_children)
         list_all_hogs_in_children = set(list_all_hogs_in_children)
         list_hogs_not_computed = list(set(list_all_hogs_in_children) - set(self.hogComputed))
+
+        # Frozen HOGs need to be tag as solo HOGs. Currently if an hog frozen at this level (frozen by removing all it edges in the graph)
+        #  is founded in the orthology graph it's considered as computed. To proceed we add them manually to the list of solo hogs
+        if settings.Settings.unmerged_treshold != False:
+            for hog_ in set(list_all_hogs_in_children):
+                if hog_.unmerged_count >= settings.Settings.unmerged_treshold:
+                    list_hogs_not_computed.append(hog_)
+
+
         self.update_solo_HOGs(list_hogs_not_computed)
         statistic_tracker.StatisticTracker.add_level_stat(self.newgenome.taxon, len(self.connectedComponents), len(self.hogComputed), len(list_hogs_not_computed), len(self.newHOGs))
         print("\t * %s seconds -- " % (time.time() - start_time) + str(len(list_hogs_not_computed)) + ' solo HOGs have been updated. ')
@@ -118,7 +133,7 @@ class Merge_ancestral():
 
 
 
-    def clean_graph_pair(self):
+    def clean_graph_pair(self, threshold_merge):
         """
         Iterate over all pairs of hogs in the graph and delete pairs (fix the number of relations between the two hogs to 0)
         with a score under the threshold (parameter_1)
@@ -126,8 +141,13 @@ class Merge_ancestral():
         """
 
         for (h1, h2), number_relations in self.orthology_graph.items():
+            if settings.Settings.unmerged_treshold != False:
+                if h1.unmerged_count >= settings.Settings.unmerged_treshold or h2.unmerged_count >= settings.Settings.unmerged_treshold:
+                    self.unmerged_counter += 1
+                    self.orthology_graph[(h1, h2)] = 0
+                    continue
             score = lib.get_percentage_orthologous_relations(h1,h2, number_relations)
-            if score >= int(settings.Settings.parameter_1):
+            if score >= int(threshold_merge):
                 self.orthology_graph[(h1, h2)] = 1
             else:
                 self.orthology_graph[(h1, h2)] = 0
@@ -199,6 +219,7 @@ class Merge_ancestral():
                 cluster_xml_obj_by_genome[genome] = new_hog.xml
 
             for hog in CC:
+                hog.unmerged_count = 0
                 cluster_hog_by_genomes[hog.topspecie].append(hog)
 
             for genome_key, genome_hogs  in cluster_hog_by_genomes.items():
@@ -216,6 +237,7 @@ class Merge_ancestral():
 
     def update_solo_HOGs(self, list_hog):
         for oldHog in list_hog:
+            oldHog.unmerged_count += 1
             oldHog.update_top_species_and_genes(self.newgenome)
             self.newHOGs.append(oldHog)
 

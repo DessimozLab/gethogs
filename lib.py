@@ -1,7 +1,35 @@
 import time
 import entity
-from Bio import Phylo
 import statistic_tracker
+from Bio import Phylo
+from settings import Settings
+
+def propagate_dynamic_threshold(node, depth):
+    children = [child for child in node]
+
+    if not children:
+        return [depth]
+    else:
+        list_descendant = []
+        for child in node:
+            child_depth = depth +1
+            list_child = propagate_dynamic_threshold(child, child_depth )
+            list_descendant = list_descendant + list_child
+        node.threshold = calculate_internal_score(list_descendant, depth)
+        return list_descendant
+
+
+def calculate_step(depth, leave_score, root_score):
+    x = ( int(leave_score) - int(root_score))/(int(depth)-1)
+    return x
+
+
+def calculate_internal_score(array, int_depth):
+    score = 0
+    for depth in array:
+        step = calculate_step(depth, Settings.parameter_1, Settings.dynamic_treshold)
+        score +=  int(Settings.parameter_1) - ((depth -1 - int_depth)  * step)
+    return score / len(array)
 
 
 def recursive_traversal(node):
