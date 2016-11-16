@@ -74,6 +74,7 @@ class Genome(object):
                 self.species.append(species)
         self.set_taxon_name(node)
         StatisticTracker.add_taxanomic_range(self.taxon)
+        StatisticTracker.frozen_per_level[self.taxon] = []
         print('-- Creation of the ancestral genome at ' +  str(self.taxon) + ":")
         merge = genome_merger.Merge_ancestral(self)
         self.HOGS = merge.newHOGs

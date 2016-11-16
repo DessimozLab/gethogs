@@ -20,6 +20,7 @@ class StatisticTracker(object):
     merged_per_level = {}
     notmerged_per_level = {}
     hog_per_level = {}
+    frozen_per_level = {}
 
     @classmethod
     def add_extent_genome_stat(cls, genome_name, nr_genes):

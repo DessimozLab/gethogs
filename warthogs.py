@@ -83,6 +83,9 @@ def main(argv):
     lib.recursive_traversal(backbone_tree.root)
 
     Settings.xml_manager.finish_xml()
+
+
+    print StatisticTracker.frozen_per_level
     '''
     print "cc_per_level", StatisticTracker.cc_per_level
     print "hog_per_level",StatisticTracker.hog_per_level
