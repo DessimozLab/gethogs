@@ -1,62 +1,69 @@
-__author__ = 'admin'
-
 import file_manager
 from settings import Settings
 from statistic_tracker import StatisticTracker
 import genome_merger
 import lib
 
+
 class Genome(object):
     IdCount = 0
-    zoo = {} # key: species_name & value: extent genomes
+    zoo = {}  # key: species_name & value: extent genomes
     retirement_house = {}  # key: taxon & value: ancestral genomes
 
     def __init__(self):
-        self.HOGS = [] # list of HOGs related to this genome
-        self.species = [] # list of all species contained within taxon
-        self.children = [] # list of chidren obj:Genome
-        self.genes = {} # key: external id from pairwise files, value: Gene obj
-        self.taxon = None # taxon name
-        self.type = None # Ancestral or extent
+        self.HOGS = []  # list of HOGs related to this genome
+        self.species = []  # list of all species contained within taxon
+        self.children = []  # list of chidren obj:Genome
+        self.genes = {}  # key: external id from pairwise files, value: Gene obj
+        self.taxon = None  # taxon name
+        self.type = None  # Ancestral or extent
         self.UniqueId = Genome.IdCount
         Genome.IdCount += 1
 
     @classmethod
     def get_extent_genomes(cls):
-        return [genome_obj for species_name, genome_obj in cls.zoo.iteritems() if genome_obj.type == "extent"]
+        if Settings.genome_info is not None:
+            it = Settings.genome_info.iterkeys()
+        else:
+            it = cls.zoo.iterkeys()
+        return [cls.zoo[species_name] for species_name in it if cls.zoo[species_name].type == "extent"]
 
     # Actual genomes function
     def init_extent_genomes(self, node):
-        '''
+        """
         init the Genome obj with extent genomes specification
         :param node:
         :return:
-        '''
-        self.species = [node.name] # att:species only composed of the str:species_name
+        """
+        self.species = [node.name]  # att:species only composed of the str:species_name
         print('-- Creation of ' +  str(self.species[0]) + " genome:")
         self.children = [self] # att:children only composed of the obj:Genome (trick to handle ancestral and extent genomes together)
         self.type = "extent"
-        list_genes = file_manager.get_list_proteins_from_pairwise_folder(Settings.pairwise_folder, Settings.input_type, node.name)
-        if Settings.paralogs_folder:
-            list_genes += file_manager.get_list_proteins_from_pairwise_folder(Settings.paralogs_folder, "standalone", node.name)
-        list_genes = list(set(list_genes))
-        self.create_genes_hogs_extent_genomes(list_genes)
+        if Settings.genome_info is not None:
+            nr_genes = Settings.genome_info[node.name].nr_genes
+        else:
+            nr_genes = file_manager.get_number_proteins_from_pairwise_folder(
+                Settings.pairwise_folder, Settings.input_type, node.name)
+            if Settings.paralogs_folder:
+                nr_genes = max(nr_genes, file_manager.get_number_proteins_from_pairwise_folder(
+                    Settings.paralogs_folder, "standalone", node.name))
+        gene_range = xrange(1, nr_genes+1)
+        self.create_genes_hogs_extent_genomes(gene_range)
         Genome.zoo[node.name] = self
-        print('-> Genome of '+ str(self.species[0]) + " (composed of " + str(len(self.genes.keys())) +  " genes) created.")
+        print('-> Genome of {} (composed of {:d} genes) created'.format(self.species[0], len(self.genes.keys())))
         StatisticTracker.add_extent_genome_stat(self.species[0], len(self.genes.keys()))
 
     def get_gene_by_ext_id(self, ext_id):
         return self.genes[ext_id]
 
-
-    def create_genes_hogs_extent_genomes(self, list_genes):
-        '''
+    def create_genes_hogs_extent_genomes(self, gene_range):
+        """
         for each genes of this species in pairwise folder, create the related obj:gene and obj:hog
-        :param list_genes:
+        :param gene_range:
         :return:
-        '''
+        """
 
-        for gene_ext_id in list_genes:
+        for gene_ext_id in gene_range:
             gene = Gene(gene_ext_id, self)
             hog = HOG()
             hog.init_solohog(gene, self)
@@ -83,13 +90,14 @@ class Genome(object):
 
     def set_taxon_name(self,node):
         if node.name:
-            self.taxon = node.name
+            self.taxon = node.name.replace('__;__',',').replace('__po__', '(').replace('__pc__', ')').replace('_', ' ')
         else:
             species_list = lib.get_list_species_name_genomes(self.children)
             taxon_name = ''
             for species in species_list:
                 taxon_name = taxon_name + "/" + str(species)
             self.taxon = taxon_name
+
 
 class HOG(object):
     IdCount = 0
@@ -107,7 +115,6 @@ class HOG(object):
         self.genes[species] = [gene]
         Settings.xml_manager.create_xml_solohog(self)
 
-
     def merge_with(self, hog_to_merge_with):
         for key, value in hog_to_merge_with.genes.items():
             if key in self.genes:
@@ -123,14 +130,19 @@ class HOG(object):
             for gene in genes:
                 gene.hog[new_top_genome] = self
 
+
 class Gene(object):
     IdCount = 0
+
     def __init__(self, ext_id, species):
-        self.hog = {} # key: obj:Genome  and value: obj:HOG
-        self.ext_id = ext_id # Id the paiwise files
-        self.species = species # obj:Genome that contains this gene
-        self.int_id = Gene.IdCount # unique id use by warthogs
-        Gene.IdCount += 1
+        self.hog = {}  # key: obj:Genome  and value: obj:HOG
+        self.ext_id = ext_id  # Id the paiwise files
+        self.species = species  # obj:Genome that contains this gene
+        if Settings.genome_info is not None:
+            self.int_id = Settings.genome_info[species.species[0]].offset + ext_id
+        else:
+            self.int_id = Gene.IdCount  # unique id use by warthogs
+            Gene.IdCount += 1
 
     def get_hog(self, query_genome):
         return self.hog[query_genome]

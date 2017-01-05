@@ -2,6 +2,10 @@ __author__ = 'admin'
 import file_manager
 from Bio import Phylo
 import sys
+import collections
+
+
+GenomeInfo = collections.namedtuple('GenomeInfo', ['name', 'offset', 'nr_genes'])
 
 class Settings(object):
     '''
@@ -21,6 +25,8 @@ class Settings(object):
     genomes_sizes = None
     dynamic_treshold = False
     unmerged_treshold = False
+    genome_info = None
+    oma_id_format = False
 
     @classmethod
     def check_required_argument(cls):
@@ -127,11 +133,31 @@ class Settings(object):
         '''
         cls.genomes_sizes = {}
         for species in cls.list_species:
-            list_proteins = file_manager.get_list_proteins_from_pairwise_folder(cls.pairwise_folder,cls.type_input,species)
+            list_proteins = file_manager.get_number_proteins_from_pairwise_folder(cls.pairwise_folder, cls.type_input, species)
             cls.genomes_sizes[species]=len(list_proteins)
 
+    @classmethod
+    def set_genome_info(cls, fname):
+        """specify a order of the genomes in the final orthoxml and a predefined number of genes.
 
+        The file needs to have the following format:
+        Class <tab> nr_genomes <tab> total_nr_genes\n
+        GenomeID <tab> offset\n
+        GenomeID <tab> offset\n (i.e. sum of genes in all previous genomes)
+        ...
 
-
-
-
+        :param fname: path to the file containing this information."""
+        info = collections.OrderedDict()
+        with open(fname) as fh:
+            class_, nr_genomes, tot_nr_genes = fh.readline().split('\t')
+            nr_genomes, tot_nr_genes = int(nr_genomes), int(tot_nr_genes)
+            g1, off1 = fh.readline().split('\t')
+            off1 = int(off1)
+            for line in fh:
+                g, off = line.split('\t')
+                off = int(off)
+                info[g1] = GenomeInfo(g1, off1, off-off1)
+                g1, off1 = g, off
+            info[g1] = GenomeInfo(g1, off1, tot_nr_genes-off1)
+        cls.genome_info = info
+        cls.oma_id_format = True

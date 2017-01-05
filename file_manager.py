@@ -82,17 +82,17 @@ def get_list_species_from_pairwise_folder(input_folder, input_type):
     elif input_type == "oma":
         return get_list_species_from_oma_folder(input_folder)
 
-def get_list_proteins_from_pairwise_folder(input_folder, input_type, query_species):
+def get_number_proteins_from_pairwise_folder(input_folder, input_type, query_species):
     '''
-    return the list of proteins in pairwise_folder for a specific species
+    return the number of proteins in pairwise_folder for a specific species
     :param input_folder:
     :param input_type:
     :return:
     '''
     if input_type == "standalone":
-        return get_list_proteins_from_standalone_folder(input_folder, query_species)
+        return get_number_proteins_from_standalone_folder(input_folder, query_species)
     elif input_type == "oma":
-        return get_list_proteins_from_oma_folder(input_folder, query_species)
+        return get_number_proteins_from_oma_folder(input_folder, query_species)
 
 def get_pairwise_data_from_pair_genomes(genome_1, genome_2):
     '''
@@ -181,13 +181,13 @@ def get_list_species_from_standalone_folder(input_folder):
     :param input_folder:
     :return:
     '''
-    list_species = []
+    species_set = set()
     for file in get_list_files(input_folder):
         file_name_no_ext = file.split(os.extsep, 1)[0]
         array_name = file_name_no_ext.split("-")
         for species_name in array_name:
-            list_species.append(species_name)
-    return list(set(list_species))
+            species_set.add(species_name)
+    return list(species_set)
 
 def get_list_species_from_paralogs_folder(input_folder):
     '''
@@ -195,35 +195,33 @@ def get_list_species_from_paralogs_folder(input_folder):
     :param input_folder:
     :return:
     '''
-    list_species = []
+    species_set = set()
     for file in get_list_files(input_folder):
         file_name_no_ext = file.split(os.extsep, 1)[0]
         array_name = file_name_no_ext.split("-")
         for species_name in array_name:
-            list_species.append(species_name)
-    return list(set(list_species))
+            species_set.add(species_name)
+    return list(species_set)
 
-def get_list_proteins_from_standalone_folder(input_folder, query_species):
+def get_number_proteins_from_standalone_folder(input_folder, query_species):
     '''
-    return the list of proteins in pairwise_folder for a specific species fetching
+    return number of proteins for a specific species fetching
     either the first or the second column of the ortho_file depending of the species name position in the file name.
     :param input_folder:
     :param input_type:
     :return:
     '''
-    list_proteins = []
+    max_prot_nr = 0
     for file in get_list_files(input_folder):
         file_name_no_ext = file.split(os.extsep, 1)[0]
         array_name = file_name_no_ext.split("-")
         if query_species == array_name[0]:
             prot_one = loadfile_columns_one(os.path.join(input_folder, file))
-            for prot in prot_one:
-                list_proteins.append(prot)
+            max_prot_nr = max(max_prot_nr, max(prot_one))
         elif query_species == array_name[1]:
             prot_two = loadfile_columns_two(os.path.join(input_folder, file))
-            for prot in prot_two:
-                list_proteins.append(prot)
-    return list(set(list_proteins))
+            max_prot_nr = max(max_prot_nr, max(prot_two))
+    return max_prot_nr
 
 
 ## OMA type (Nested) #
@@ -250,36 +248,34 @@ def get_list_species_from_oma_folder(input_folder):
     :param input_folder:
     :return:
     '''
-    list_species = []
+    species_set = set()
     for dir in get_list_dir(input_folder):
-        list_species.append(dir)
+        species_set.add(dir)
         for file in get_list_files(input_folder + dir):
-            list_species.append(file.split(os.extsep, 1)[0])
-    return list(set(list_species))
+            species_set.add(file.split(os.extsep, 1)[0])
+    return list(species_set)
 
 
-def get_list_proteins_from_oma_folder(input_folder, query_species):
+def get_number_proteins_from_oma_folder(input_folder, query_species):
     """
-    return the list of proteins in pairwise_folder for a specific species fetching
+    return the number of proteins in pairwise_folder for a specific species fetching
     either the first or the second column of the ortho_file depending if the species name fit respectively with the folder name or the file name.
     :param input_folder:
     :param input_type:
     :return:
     """
-    list_proteins = []
+    max_prot_nr = 0
     for dir in get_list_dir(input_folder):
         if dir == query_species:
             for file in get_list_files(input_folder + dir):
                 prot_one = loadfile_columns_one(os.path.join(input_folder + dir, file))
-                for prot in prot_one:
-                    list_proteins.append(prot)
+                max_prot_nr = max(max_prot_nr, max(prot_one))
         else:
             for file in get_list_files(input_folder + dir):
                 if file.split(os.extsep, 1)[0] == query_species:
-                    prot_two = loadfile_columns_two(os.path.join(input_folder + dir , file))
-                    for prot in prot_two:
-                        list_proteins.append(prot)
-    return list(set(list_proteins))
+                    prot_two = loadfile_columns_two(os.path.join(input_folder + dir, file))
+                    max_prot_nr = max(max_prot_nr, max(prot_two))
+    return max_prot_nr
 
 def get_if_genomes_pair_oma_folder_inverted(genome_1, genome_2):
     """
@@ -332,9 +328,8 @@ class XML_manager(object):
         self.add_species_data(entity.Genome.get_extent_genomes())
         self.delete_solohog()
         self.add_toplevel_OG_Id()
-        lib.indent(self.xml)
         tree = etree.ElementTree(self.xml)
-        tree.write(settings.Settings.output_file, xml_declaration=True, encoding='utf-8', method="xml")
+        tree.write(settings.Settings.output_file, pretty_print=True, xml_declaration=True, encoding='utf-8', method="xml")
 
     def add_species_data(self, list_extent_genomes):
         '''
@@ -346,7 +341,7 @@ class XML_manager(object):
             species_xml = etree.Element("species")
             species_xml.set("name", species.species[0])
             species_xml.set("NCBITaxId", '0')
-            self.xml.insert(0, species_xml)
+            self.xml.append(species_xml)
 
             # Add <database> into <species>
             database_xml = etree.SubElement(species_xml, "database")

@@ -33,51 +33,29 @@ def calculate_internal_score(array, int_depth):
 
 
 def recursive_traversal(node):
-        children = [child for child in node]
-
-        if not children:
-            start_time = time.time()
-            node.genome = entity.Genome()
-            node.genome.init_extent_genomes(node)
-            end_time = time.time()
-            print("<- %s seconds." % (end_time - start_time))
-            print("\n")
-        else:
-            for child in node:
-                recursive_traversal(child)
-            start_time = time.time()
-            node.genome = entity.Genome()
-            node.genome.init_ancestral_genomes(node)
-            end_time = time.time()
-            statistic_tracker.StatisticTracker.set_time_per_level(node.genome.taxon, end_time - start_time )
-            print("<- %s seconds." % (end_time - start_time))
-            print("\n")
-
-
-def indent(elem, level=0):
-    """
-    re structure the xml tree in human readable format (pre processing before writing the tree in a file)
-    :param elem:
-    :param level:
-    :return:
-    """
-    i = "\n" + level*"  "
-    if len(elem):
-        if not elem.text or not elem.text.strip():
-            elem.text = i + "  "
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-        for elem in elem:
-            indent(elem, level+1)
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
+    if node.is_terminal():
+        start_time = time.time()
+        node.genome = entity.Genome()
+        node.genome.init_extent_genomes(node)
+        end_time = time.time()
+        print("<- %s seconds." % (end_time - start_time))
+        print("\n")
     else:
-        if level and (not elem.tail or not elem.tail.strip()):
-            elem.tail = i
+        for child in node:
+            recursive_traversal(child)
+        start_time = time.time()
+        node.genome = entity.Genome()
+        node.genome.init_ancestral_genomes(node)
+        end_time = time.time()
+        statistic_tracker.StatisticTracker.set_time_per_level(node.genome.taxon, end_time - start_time )
+        print("<- %s seconds." % (end_time - start_time))
+        print("\n")
+
 
 def draw_tree(tree):
     tree.ladderize()
     Phylo.draw_ascii(tree)
+
 
 def get_list_species_name_genomes(list_genomes_object):
     """

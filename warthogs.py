@@ -13,9 +13,9 @@ from statistic_tracker import StatisticTracker
 def main(argv):
 
     try:
-        opts, args = getopt.getopt(argv,"hi:t:m:p:o:s:k:d:u:")
+        opts, args = getopt.getopt(argv,"hi:t:m:p:o:s:k:d:u:g:")
     except getopt.GetoptError:
-        print('Usage: warthogs.py -i orthologs_folder -k paralogs_folder -t input_type -m method_merge -p parameter_1 -o output_file -s species_tree')
+        print('Usage: warthogs.py -i orthologs_folder -k paralogs_folder -t input_type -m method_merge -p parameter_1 -o output_file -s species_tree -g genome_info')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-h"):
@@ -34,6 +34,7 @@ def main(argv):
                   "\n     \033[1m-d\033[0m  merge threshold of the root used by the dynamic propagation . \n"
                   "\n     \033[1m-u\033[0m  maximum number of unmerged before freezing an HOGs. \n"
                   "\n     \033[1m-s\033[0m  Newick file with the species tree use as skeleton for traversal.\n"
+                  "\n     \033[1m-g\033[0m  Genome Info file (optional) with order and number of genes,\n"
                   '\n  \033[1mIMPORTANT\033[0m \n'
                   '\n       - Pairwise orthologous/paralogous relations files (standalone): No *-* inside you species name. \n'
                   '\n       - Pairwise orthologous/paralogous relations files (oma): No *.* inside you species name. \n'
@@ -58,6 +59,8 @@ def main(argv):
                 Settings.set_dynamic_target_threshold(str(arg))
         elif opt in ("-u"):
                 Settings.set_unmerged_threshold(str(arg))
+        elif opt in ("-g"):
+                Settings.set_genome_info(str(arg))
 
     ############################
     start_time = time.time()
