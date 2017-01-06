@@ -337,6 +337,13 @@ class XML_manager(object):
         :param list_extent_genomes:
         :return:
         '''
+
+        def prot_id_func(gene, species):
+            if settings.Settings.oma_id_format:
+                return "{:s}{:05d}".format(species.species[0], gene.ext_id)
+            else:
+                return str(gene.ext_id)
+
         for species in list_extent_genomes[::-1]:
             species_xml = etree.Element("species")
             species_xml.set("name", species.species[0])
@@ -355,7 +362,7 @@ class XML_manager(object):
             for ext_id, gene_obj in species.genes.iteritems():
                 gene_xml = etree.SubElement(genes_xml, "gene")
                 gene_xml.set("id", str(gene_obj.int_id))
-                gene_xml.set("protId", str(gene_obj.ext_id))
+                gene_xml.set("protId", prot_id_func(gene_obj, species))
 
     def create_xml_solohog(self, hog):
         '''
