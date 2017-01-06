@@ -26,7 +26,8 @@ class Genome(object):
             it = Settings.genome_info.iterkeys()
         else:
             it = cls.zoo.iterkeys()
-        return [cls.zoo[species_name] for species_name in it if cls.zoo[species_name].type == "extent"]
+        return [cls.zoo[species_name] for species_name in it
+                if species_name in cls.zoo and cls.zoo[species_name].type == "extent"]
 
     # Actual genomes function
     def init_extent_genomes(self, node):

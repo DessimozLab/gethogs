@@ -54,7 +54,7 @@ class Settings(object):
         species_input_tree = [sp.name for sp in species_tree.get_terminals()]
         species_orthologs_file = file_manager.get_list_species_from_pairwise_folder(cls.pairwise_folder, cls.input_type)
 
-        if set(species_orthologs_file) != set(species_input_tree):
+        if not set(species_input_tree).issubset(set(species_orthologs_file)):
             print('Inconsistency between species in the species tree and the pairwise folder \n')
             print('Species in the tree:', species_input_tree, ' \n' )
             print('Species in the pairwise folder:', species_orthologs_file , ' \n' )
