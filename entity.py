@@ -90,7 +90,7 @@ class Genome(object):
 
     def set_taxon_name(self,node):
         if node.name:
-            self.taxon = node.name.replace('__;__',',').replace('__po__', '(').replace('__pc__', ')').replace('_', ' ')
+            self.taxon = node.name.replace('__$__',',').replace('__po__', '(').replace('__pc__', ')').replace('_', ' ')
         else:
             species_list = lib.get_list_species_name_genomes(self.children)
             taxon_name = ''

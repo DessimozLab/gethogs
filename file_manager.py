@@ -337,11 +337,11 @@ class XML_manager(object):
         :param list_extent_genomes:
         :return:
         '''
-        for species in sorted(list_extent_genomes):
+        for species in list_extent_genomes[::-1]:
             species_xml = etree.Element("species")
             species_xml.set("name", species.species[0])
             species_xml.set("NCBITaxId", '0')
-            self.xml.append(species_xml)
+            self.xml.insert(0, species_xml)
 
             # Add <database> into <species>
             database_xml = etree.SubElement(species_xml, "database")
