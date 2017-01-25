@@ -277,7 +277,7 @@ def get_number_proteins_from_oma_folder(input_folder, query_species):
                     max_prot_nr = max(max_prot_nr, max(prot_two))
     return max_prot_nr
 
-def get_if_genomes_pair_oma_folder_inverted(genome_1, genome_2):
+def get_if_genomes_pair_oma_folder_inverted(genome_1, genome_2, ext="orth.txt.gz"):
     """
     return for a pair of genomes the related pairwise filename + if their order in file structure
     :param genome_1:
@@ -286,11 +286,11 @@ def get_if_genomes_pair_oma_folder_inverted(genome_1, genome_2):
     """
     if genome_1.species[0] in settings.Settings.folder_structure.keys():
         for file in settings.Settings.folder_structure[genome_1.species[0]]:
-            if file.split(os.extsep, 1)[0] == genome_2.species[0]:
+            if file.split(os.extsep, 1) == [genome_2.species[0], ext]:
                 return False, file
 
     for file in settings.Settings.folder_structure[genome_2.species[0]]:
-        if file.split(os.extsep, 1)[0] == genome_1.species[0]:
+        if file.split(os.extsep, 1) == [genome_1.species[0], ext]:
             return True, file
 
 
