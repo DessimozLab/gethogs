@@ -145,7 +145,7 @@ class XML_manager(object):
         vers = datetime.date.today().strftime("%b %Y")
         if settings.Settings.input_type == 'standalone':
             origin += " standalone (bottom-up)"
-            vers = "[VERSION]"
+            vers = "[VERSIONNR]"
 
         self.xml = self.create_xml(origin, vers)
         self.groupsxml = etree.SubElement(self.xml, "groups")
