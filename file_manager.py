@@ -1,56 +1,128 @@
 __author__ = 'admin'
 
 import os
-from os.path import isfile, join, isdir
+from os.path import join
 import numpy as np
 import lxml.etree as etree
 import entity
-import lib
 import settings
+import collections
+
 
 # Function to handle folders/files #
 ####################################
 
-def loadfile_columns_one(file):
+class DataFileHandler(object):
+    def get_pairwise_relations(self, genome1, genome2, typ='ortholog'):
+        fn, inv = self.get_relations_filename(genome1, genome2, typ)
+        return load_relations(fn, inv)
+
+    def get_list_of_species(self):
+        raise NotImplementedError()
+
+    def get_number_of_proteins(self, genome):
+        raise NotImplementedError()
+
+    def get_relations_filename(self, genome1, genome2, typ='ortholog'):
+        raise NotImplementedError()
+
+    def prot_id_formatter(self, species, gene):
+        """TODO: this should not go here. needs some better refactoring"""
+        if settings.Settings.oma_id_format:
+            return "{:s}{:05d}".format(species.species[0], gene.ext_id)
+        else:
+            return str(gene.ext_id)
+
+
+class OmaStandaloneFiles(DataFileHandler):
+    def __init__(self, output):
+        mapping = collections.defaultdict(dict)
+        data = np.genfromtxt(join(output, 'Map-SeqNum-ID.txt'), delimiter='\t', dtype=None, comments='#')
+        genome_info, cur_species, cur_off = {}, data[0][0], 0
+        for cnt, row in enumerate(data):
+            mapping[row[0]][row[1]] = row[2]
+            if row[0] != cur_species and cur_species != '':
+                genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt - cur_off)
+                cur_off, cur_species = cnt, row[0]
+        genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, len(data)-cur_off)
+        settings.Settings.genome_info = genome_info
+        self.mapping = mapping
+
+    def get_list_of_species(self):
+        return self.mapping.keys()
+
+    def get_number_of_proteins(self, genome):
+        return max(self.mapping[genome].keys())
+
+    def get_relations_filename(self, genome1, genome2, typ='ortholog'):
+        root = settings.Settings.pairwise_folder if typ[0].lower()=='o' else settings.Settings.paralogs_folder
+        g1, g2 = sorted([genome1, genome2], key=lambda x: settings.Settings.genome_info[x].nr_genes)
+        path = join(root, "{}-{}.txt".format(g1, g2))
+        if not os.path.exists(path):
+            g1, g2 = g2, g1
+            path = join(root, "{}-{}.txt".format(g1, g2))
+        return path, genome1 != g1
+
+    def prot_id_formatter(self, species, gene):
+        return self.mapping[species.species[0]][gene.ext_id]
+
+
+class OmaProductionFiles(DataFileHandler):
+    def __init__(self):
+        assert settings.Settings.genome_info is not None
+
+    def get_list_of_species(self):
+        return settings.Settings.genome_info.keys()
+
+    def get_number_of_proteins(self, genome):
+        return settings.Settings.genome_info[genome].nr_genes
+
+    def get_relations_filename(self, genome1, genome2, typ='ortholog'):
+        g1, g2 = genome1, genome2
+        if settings.Settings.genome_info[g1].offset > settings.Settings.genome_info[g2].offset:
+            g1, g2 = g2, g1
+        root = settings.Settings.pairwise_folder if typ[0].lower() == 'o' else settings.Settings.paralogs_folder
+        return join(root, g1, "{}.orth.txt.gz".format(g2)), g1 != genome1
+
+
+def inputfile_handler_factory():
+    input_type = settings.Settings.input_type.lower()
+    if input_type == 'standalone':
+        return OmaStandaloneFiles(os.path.normpath(join(settings.Settings.pairwise_folder,'..')))
+    elif input_type == 'oma':
+        return OmaProductionFiles()
+
+
+def load_tsv_file_single_columns(file, col):
     '''
     Load the first column of tab delimited file
-    :param file:
+    :param col: column to load
+    :param file: path to file to load column from
     :return:
     '''
-    data =  np.genfromtxt(file, dtype=None, comments="#", delimiter="", usecols=(0))
+    data = np.genfromtxt(file, dtype=None, comments="#", delimiter="", usecols=(col))
     if data.size == 1:
         data = np.reshape(data, data.size)
         return data
     else:
         return data
 
-def loadfile_columns_two(file):
-    '''
-    Load the second column of tab delimited file
-    :param file:
-    :return:
-    '''
-    data =  np.genfromtxt(file, dtype=None, comments="#", delimiter="", usecols=(1))
-    if data.size == 1:
-        data = np.reshape(data, data.size)
-        return data
-    else:
-        return data
 
-def loadfile_columns_one_two(file):
-    '''
+def load_relations(file, inv):
+    """
     Load the first and second column of tab delimited file
-    :param file:
+    :param str file: path to file containing relations
+    :param bool inv: invert columns, e.g. data is stored in other genome pair order
     :return:
-    '''
-
-    data =  np.genfromtxt(file, dtype=None, comments="#", delimiter="", usecols=(0,1))
+    """
+    cols = (0, 1) if not inv else (1, 0)
+    data = np.genfromtxt(file, dtype=None, comments="#", delimiter="", usecols=cols)
 
     if len(data) == 0:
         return data
 
     elif data.shape == (2,):
-        data = [data]
+        data = data.reshap(1, 2)
         return data
     else:
         try:
@@ -62,248 +134,15 @@ def loadfile_columns_one_two(file):
 
 
 
-def get_list_files(mypath):
-    onlyfiles = [ f for f in os.listdir(mypath) if isfile(join(mypath,f)) ]
-    return onlyfiles
-
-def get_list_dir(mypath):
-    onlydir = [ f for f in os.listdir(mypath) if isdir(join(mypath,f)) ]
-    return onlydir
-
-def get_list_species_from_pairwise_folder(input_folder, input_type):
-    '''
-    return the list of species in pairwise_folder
-    :param input_folder:
-    :param input_type:
-    :return:
-    '''
-    if input_type == "standalone":
-        return get_list_species_from_standalone_folder(input_folder)
-    elif input_type == "oma":
-        return get_list_species_from_oma_folder(input_folder)
-
-def get_number_proteins_from_pairwise_folder(input_folder, input_type, query_species):
-    '''
-    return the number of proteins in pairwise_folder for a specific species
-    :param input_folder:
-    :param input_type:
-    :return:
-    '''
-    if input_type == "standalone":
-        return get_number_proteins_from_standalone_folder(input_folder, query_species)
-    elif input_type == "oma":
-        return get_number_proteins_from_oma_folder(input_folder, query_species)
-
-def get_pairwise_data_from_pair_genomes(genome_1, genome_2):
-    '''
-    return the file with pairwise data for a pair of genomes, and return if they are inverted or not in the data columns
-    :param genome_1:
-    :param genome_2:
-    :return:
-    '''
-
-    if settings.Settings.input_type == "standalone":
-        inverted, file = get_file_genomes_pair_standalone_folder_inverted(genome_1, genome_2)
-        file = os.path.join(settings.Settings.pairwise_folder, file)
-    elif settings.Settings.input_type == "oma":
-        inverted, file = get_if_genomes_pair_oma_folder_inverted(genome_1, genome_2)
-        if inverted:
-            file = os.path.join(settings.Settings.pairwise_folder, genome_2.species[0], file)
-        else:
-            file = os.path.join(settings.Settings.pairwise_folder, genome_1.species[0], file)
-    pairwise_data = loadfile_columns_one_two(file)
-    return pairwise_data, inverted
-
-def get_paralogs_data_from_pair_genomes(genome_1, genome_2):
-    '''
-    return the file with paralogous data for a pair of genomes, and return if they are inverted or not in the data columns
-    :param genome_1:
-    :param genome_2:
-    :return:
-    '''
-
-    inverted, file = get_paralogs_file_genomes_pair_standalone_folder_inverted(genome_1, genome_2)
-    file = os.path.join(settings.Settings.paralogs_folder, file)
-
-    paralogous_data = loadfile_columns_one_two(file)
-    return paralogous_data, inverted
-
-## Standalone type (listed) #
-#############################
-
-def get_file_genomes_pair_standalone_folder_inverted(genome_1, genome_2):
-    '''
-    return for a pair of genomes the related pairwise filename + if their order in file structure
-    :param genome_1:
-    :param genome_2:
-    :return:
-    '''
-    files = get_list_files(settings.Settings.pairwise_folder)
-    for file in files:
-        file_name_no_ext = file.split(os.extsep, 1)[0]
-        array_name = file_name_no_ext.split("-")
-        g_1 = array_name[0]
-        g_2 = array_name[1]
-        if g_1 == genome_1.species[0]:
-            if g_2 == genome_2.species[0]:
-                return False, file
-        if g_1 == genome_2.species[0]:
-            if g_2 == genome_1.species[0]:
-                return True, file
-    return
-
-def get_paralogs_file_genomes_pair_standalone_folder_inverted(genome_1, genome_2):
-    '''
-    return for a pair of genomes the related pairwise filename + if their order in file structure
-    :param genome_1:
-    :param genome_2:
-    :return:
-    '''
-    files = get_list_files(settings.Settings.paralogs_folder)
-
-    for file in files:
-
-        file_name_no_ext = file.split(os.extsep, 1)[0]
-        array_name = file_name_no_ext.split("-")
-        g_1 = array_name[0]
-        g_2 = array_name[1]
-        if g_1 == genome_1.species[0]:
-            if g_2 == genome_2.species[0]:
-                return False, file
-        if g_1 == genome_2.species[0]:
-            if g_2 == genome_1.species[0]:
-                return True, file
-    return
-
-def get_list_species_from_standalone_folder(input_folder):
-    '''
-    return species name from the file names (species1-species2.ext) of the pairwise folder
-    :param input_folder:
-    :return:
-    '''
-    species_set = set()
-    for file in get_list_files(input_folder):
-        file_name_no_ext = file.split(os.extsep, 1)[0]
-        array_name = file_name_no_ext.split("-")
-        for species_name in array_name:
-            species_set.add(species_name)
-    return list(species_set)
-
-def get_list_species_from_paralogs_folder(input_folder):
-    '''
-    return species name from the file names (species1-species2.ext) of the pairwise folder
-    :param input_folder:
-    :return:
-    '''
-    species_set = set()
-    for file in get_list_files(input_folder):
-        file_name_no_ext = file.split(os.extsep, 1)[0]
-        array_name = file_name_no_ext.split("-")
-        for species_name in array_name:
-            species_set.add(species_name)
-    return list(species_set)
-
-def get_number_proteins_from_standalone_folder(input_folder, query_species):
-    '''
-    return number of proteins for a specific species fetching
-    either the first or the second column of the ortho_file depending of the species name position in the file name.
-    :param input_folder:
-    :param input_type:
-    :return:
-    '''
-    max_prot_nr = 0
-    for file in get_list_files(input_folder):
-        file_name_no_ext = file.split(os.extsep, 1)[0]
-        array_name = file_name_no_ext.split("-")
-        if query_species == array_name[0]:
-            prot_one = loadfile_columns_one(os.path.join(input_folder, file))
-            max_prot_nr = max(max_prot_nr, max(prot_one))
-        elif query_species == array_name[1]:
-            prot_two = loadfile_columns_two(os.path.join(input_folder, file))
-            max_prot_nr = max(max_prot_nr, max(prot_two))
-    return max_prot_nr
-
-
-## OMA type (Nested) #
-######################
-
-def get_folder_structure_dict(folder):
-    '''
-    Return a dictionary with the nested structure of the pairwise folder (in case of oma folder structure)
-    :param folder:
-    :return:
-    '''
-    folder_dict = {}
-    for species in get_list_species_from_oma_folder(folder):
-        folder_dict[species]= []
-    for folder_name in os.listdir(folder):
-        if os.path.isdir(os.path.join(folder, folder_name)):
-            folder_dict[folder_name] = get_list_files(folder + folder_name)
-    return folder_dict
-
-
-def get_list_species_from_oma_folder(input_folder):
-    '''
-    return species name from folder names + file names within them
-    :param input_folder:
-    :return:
-    '''
-    species_set = set()
-    for dir in get_list_dir(input_folder):
-        species_set.add(dir)
-        for file in get_list_files(input_folder + dir):
-            species_set.add(file.split(os.extsep, 1)[0])
-    return list(species_set)
-
-
-def get_number_proteins_from_oma_folder(input_folder, query_species):
-    """
-    return the number of proteins in pairwise_folder for a specific species fetching
-    either the first or the second column of the ortho_file depending if the species name fit respectively with the folder name or the file name.
-    :param input_folder:
-    :param input_type:
-    :return:
-    """
-    max_prot_nr = 0
-    for dir in get_list_dir(input_folder):
-        if dir == query_species:
-            for file in get_list_files(input_folder + dir):
-                prot_one = loadfile_columns_one(os.path.join(input_folder + dir, file))
-                max_prot_nr = max(max_prot_nr, max(prot_one))
-        else:
-            for file in get_list_files(input_folder + dir):
-                if file.split(os.extsep, 1)[0] == query_species:
-                    prot_two = loadfile_columns_two(os.path.join(input_folder + dir, file))
-                    max_prot_nr = max(max_prot_nr, max(prot_two))
-    return max_prot_nr
-
-def get_if_genomes_pair_oma_folder_inverted(genome_1, genome_2, ext="orth.txt.gz"):
-    """
-    return for a pair of genomes the related pairwise filename + if their order in file structure
-    :param genome_1:
-    :param genome_2:
-    :return:
-    """
-    if genome_1.species[0] in settings.Settings.folder_structure.keys():
-        for file in settings.Settings.folder_structure[genome_1.species[0]]:
-            if file.split(os.extsep, 1) == [genome_2.species[0], ext]:
-                return False, file
-
-    for file in settings.Settings.folder_structure[genome_2.species[0]]:
-        if file.split(os.extsep, 1) == [genome_1.species[0], ext]:
-            return True, file
-
-
 # Orthoxml output manager #
 ###########################
 
 class XML_manager(object):
-
     def __init__(self):
         self.xml = self.create_xml("orthoXML", 'Sep 2014', 'OMA', '0.3', 'http://orthoXML.org/2011/')
         self.groupsxml = etree.SubElement(self.xml, "groups")
 
-    def create_xml(self, root_tag,originVersion,origin,version,xmlns):
+    def create_xml(self, root_tag, originVersion, origin, version, xmlns):
         '''
         Init the xml file
         :param root_tag:
@@ -329,7 +168,8 @@ class XML_manager(object):
         self.delete_solohog()
         self.add_toplevel_OG_Id()
         tree = etree.ElementTree(self.xml)
-        tree.write(settings.Settings.output_file, pretty_print=True, xml_declaration=True, encoding='utf-8', method="xml")
+        tree.write(settings.Settings.output_file, pretty_print=True, xml_declaration=True, encoding='utf-8',
+                   method="xml")
 
     def add_species_data(self, list_extent_genomes):
         '''
@@ -338,12 +178,7 @@ class XML_manager(object):
         :return:
         '''
 
-        def prot_id_func(gene, species):
-            if settings.Settings.oma_id_format:
-                return "{:s}{:05d}".format(species.species[0], gene.ext_id)
-            else:
-                return str(gene.ext_id)
-
+        prot_id_formatter = settings.Settings.inputfile_handler.prot_id_formatter
         for species in list_extent_genomes[::-1]:
             species_xml = etree.Element("species")
             species_xml.set("name", species.species[0])
@@ -362,7 +197,7 @@ class XML_manager(object):
             for ext_id, gene_obj in species.genes.iteritems():
                 gene_xml = etree.SubElement(genes_xml, "gene")
                 gene_xml.set("id", str(gene_obj.int_id))
-                gene_xml.set("protId", prot_id_func(gene_obj, species))
+                gene_xml.set("protId", prot_id_formatter(species, gene_obj))
 
     def create_xml_solohog(self, hog):
         '''
@@ -372,8 +207,8 @@ class XML_manager(object):
         '''
         hog.xml = etree.SubElement(self.groupsxml, "geneRef")
         gene = hog.genes[hog.topspecie][0]
-        hog.xml.set('id',str(gene.int_id))
-        #hog.xml.set("ext_id", str(gene.ext_id))
+        hog.xml.set('id', str(gene.int_id))
+        # hog.xml.set("ext_id", str(gene.ext_id))
 
     def delete_solohog(self):
         '''
@@ -384,12 +219,7 @@ class XML_manager(object):
             solo_hog.getparent().remove(solo_hog)
 
     def add_toplevel_OG_Id(self):
-        id_count = 0
+        id_count = 1
         for i, e in enumerate(self.xml.findall('.//groups/orthologGroup')):
             e.set('id', str(id_count))
             id_count += 1
-
-
-
-
-

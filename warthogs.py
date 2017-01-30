@@ -13,7 +13,7 @@ from statistic_tracker import StatisticTracker
 def main(argv):
 
     try:
-        opts, args = getopt.getopt(argv,"hi:t:m:p:o:s:k:d:u:g:")
+        opts, args = getopt.getopt(argv, "hi:t:m:p:o:s:k:d:u:g:")
     except getopt.GetoptError:
         print('Usage: warthogs.py -i orthologs_folder -k paralogs_folder -t input_type -m method_merge -p parameter_1 -o output_file -s species_tree -g genome_info')
         sys.exit(2)
@@ -75,7 +75,6 @@ def main(argv):
 
     Settings.check_required_argument()
     Settings.check_consistency_argument()
-    Settings.set_folder_structure()
     Settings.set_xml_manager(file_manager.XML_manager())
 
     backbone_tree = Phylo.read(Settings.input_tree, "newick")

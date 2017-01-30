@@ -40,14 +40,7 @@ class Genome(object):
         print('-- Creation of ' +  str(self.species[0]) + " genome:")
         self.children = [self] # att:children only composed of the obj:Genome (trick to handle ancestral and extent genomes together)
         self.type = "extent"
-        if Settings.genome_info is not None:
-            nr_genes = Settings.genome_info[node.name].nr_genes
-        else:
-            nr_genes = file_manager.get_number_proteins_from_pairwise_folder(
-                Settings.pairwise_folder, Settings.input_type, node.name)
-            if Settings.paralogs_folder:
-                nr_genes = max(nr_genes, file_manager.get_number_proteins_from_pairwise_folder(
-                    Settings.paralogs_folder, "standalone", node.name))
+        nr_genes = Settings.inputfile_handler.get_number_of_proteins(node.name)
         gene_range = xrange(1, nr_genes+1)
         self.create_genes_hogs_extent_genomes(gene_range)
         Genome.zoo[node.name] = self

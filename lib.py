@@ -4,6 +4,7 @@ import statistic_tracker
 from Bio import Phylo
 from settings import Settings
 
+
 def propagate_dynamic_threshold(node, depth):
     children = [child for child in node]
 
@@ -12,15 +13,15 @@ def propagate_dynamic_threshold(node, depth):
     else:
         list_descendant = []
         for child in node:
-            child_depth = depth +1
-            list_child = propagate_dynamic_threshold(child, child_depth )
+            child_depth = depth + 1
+            list_child = propagate_dynamic_threshold(child, child_depth)
             list_descendant = list_descendant + list_child
         node.threshold = calculate_internal_score(list_descendant, depth)
         return list_descendant
 
 
 def calculate_step(depth, leave_score, root_score):
-    x = ( int(leave_score) - int(root_score))/(int(depth)-1)
+    x = (int(leave_score) - int(root_score)) / (int(depth) - 1)
     return x
 
 
@@ -28,7 +29,7 @@ def calculate_internal_score(array, int_depth):
     score = 0
     for depth in array:
         step = calculate_step(depth, Settings.parameter_1, Settings.dynamic_treshold)
-        score +=  int(Settings.parameter_1) - ((depth -1 - int_depth)  * step)
+        score += int(Settings.parameter_1) - ((depth - 1 - int_depth) * step)
     return score / len(array)
 
 
@@ -47,7 +48,7 @@ def recursive_traversal(node):
         node.genome = entity.Genome()
         node.genome.init_ancestral_genomes(node)
         end_time = time.time()
-        statistic_tracker.StatisticTracker.set_time_per_level(node.genome.taxon, end_time - start_time )
+        statistic_tracker.StatisticTracker.set_time_per_level(node.genome.taxon, end_time - start_time)
         print("<- %s seconds." % (end_time - start_time))
         print("\n")
 
@@ -79,8 +80,9 @@ def get_percentage_orthologous_relations(hog_1, hog_2, extent_relations):
     :return:
     """
     maximum_relations = len(hog_1.genes) * len(hog_2.genes)
-    score = float(extent_relations)/float(maximum_relations)
+    score = float(extent_relations) / float(maximum_relations)
     return score * 100
+
 
 def get_percentage_relations_between_two_set_of_HOGs(hogs_1, hogs_2, graph):
     """
@@ -93,7 +95,6 @@ def get_percentage_relations_between_two_set_of_HOGs(hogs_1, hogs_2, graph):
 
     number_pairwise_relations = get_all_pr_between_two_set_of_HOGs(graph, hogs_1, hogs_2)
 
-
     nbr_genes_hog1 = 0
     nbr_genes_hog2 = 0
     for hog1 in hogs_1:
@@ -105,7 +106,7 @@ def get_percentage_relations_between_two_set_of_HOGs(hogs_1, hogs_2, graph):
             for e in g:
                 nbr_genes_hog2 += 1
     maximum_relations = nbr_genes_hog1 * nbr_genes_hog2
-    score = float(number_pairwise_relations)/float(maximum_relations)
+    score = float(number_pairwise_relations) / float(maximum_relations)
     score = score * 100
     return score
 
@@ -122,11 +123,11 @@ def get_all_pr_between_two_set_of_HOGs(graph, list_hogs1, list_hogs2):
     for hog1 in list_hogs1:
         for hog2 in list_hogs2:
             try:
-                pairwise_relations += graph[(hog1,hog2)]
+                pairwise_relations += graph[(hog1, hog2)]
 
             except KeyError:
                 try:
-                    pairwise_relations += graph[(hog2,hog1)]
+                    pairwise_relations += graph[(hog2, hog1)]
                 except KeyError:
                     pass
 
