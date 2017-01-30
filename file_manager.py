@@ -1,3 +1,5 @@
+import datetime
+
 __author__ = 'admin'
 
 import os
@@ -139,10 +141,16 @@ def load_relations(file, inv):
 
 class XML_manager(object):
     def __init__(self):
-        self.xml = self.create_xml("orthoXML", 'Sep 2014', 'OMA', '0.3', 'http://orthoXML.org/2011/')
+        origin = "OMA"
+        vers = datetime.date.today().strftime("%b %Y")
+        if settings.Settings.input_type == 'standalone':
+            origin += " standalone (bottom-up)"
+            vers = "[VERSION]"
+
+        self.xml = self.create_xml(origin, vers)
         self.groupsxml = etree.SubElement(self.xml, "groups")
 
-    def create_xml(self, root_tag, originVersion, origin, version, xmlns):
+    def create_xml(self, origin, originVersion):
         '''
         Init the xml file
         :param root_tag:
@@ -152,11 +160,11 @@ class XML_manager(object):
         :param xmlns:
         :return:
         '''
-        xml_core = etree.Element(root_tag)
-        xml_core.set("originVersion", originVersion)
+        xml_core = etree.Element("orthoXML")
         xml_core.set("origin", origin)
-        xml_core.set("version", version)
-        xml_core.set("xmlns", xmlns)
+        xml_core.set("originVersion", originVersion)
+        xml_core.set("version", "0.3")
+        xml_core.set("xmlns", "http://orthoXML.org/2011/")
         return xml_core
 
     def finish_xml(self):
