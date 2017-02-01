@@ -1,7 +1,4 @@
 import datetime
-
-__author__ = 'admin'
-
 import os
 from os.path import join
 import numpy as np
@@ -40,12 +37,13 @@ class OmaStandaloneFiles(DataFileHandler):
     def __init__(self, output):
         mapping = collections.defaultdict(dict)
         data = np.genfromtxt(join(output, 'Map-SeqNum-ID.txt'), delimiter='\t', dtype=None, comments='#')
-        genome_info, cur_species, cur_off = {}, data[0][0], 0
+        genome_info, cur_species, cur_off = {}, data[0][0].decode(), 0
         for cnt, row in enumerate(data):
-            mapping[row[0]][row[1]] = row[2]
-            if row[0] != cur_species and cur_species != '':
+            species = row[0].decode()
+            mapping[species][row[1]] = row[2].decode()
+            if species != cur_species and cur_species != '':
                 genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt - cur_off)
-                cur_off, cur_species = cnt, row[0]
+                cur_off, cur_species = cnt, species
         genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, len(data)-cur_off)
         settings.Settings.genome_info = genome_info
         self.mapping = mapping
@@ -135,9 +133,10 @@ def load_relations(file, inv):
             return data
 
 
-
+###########################
 # Orthoxml output manager #
 ###########################
+
 
 class XML_manager(object):
     def __init__(self):
@@ -202,7 +201,7 @@ class XML_manager(object):
             genes_xml = etree.SubElement(database_xml, "genes")
 
             # Fill <genes> with <gene>
-            for ext_id, gene_obj in species.genes.iteritems():
+            for ext_id, gene_obj in species.genes.items():
                 gene_xml = etree.SubElement(genes_xml, "gene")
                 gene_xml.set("id", str(gene_obj.int_id))
                 gene_xml.set("protId", prot_id_formatter(species, gene_obj))

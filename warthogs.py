@@ -1,5 +1,3 @@
-__author__ = 'admin'
-
 import sys
 import getopt
 import lib
@@ -86,22 +84,19 @@ def main(argv):
 
     Settings.xml_manager.finish_xml()
 
-
-    print StatisticTracker.frozen_per_level
-    '''
-    print "cc_per_level", StatisticTracker.cc_per_level
-    print "hog_per_level",StatisticTracker.hog_per_level
-    print "levels",StatisticTracker.levels
-    print "notmerged_per_level",StatisticTracker.notmerged_per_level
-    print "nr_genes",StatisticTracker.nr_genes
-    print "nr_genes_per_genome",StatisticTracker.nr_genes_per_genome
-    print "merged_per_level",StatisticTracker.merged_per_level
-    print "time_per_level",StatisticTracker.time_per_level
-    '''
+    # print StatisticTracker.frozen_per_level
+    # print "cc_per_level", StatisticTracker.cc_per_level
+    # print "hog_per_level",StatisticTracker.hog_per_level
+    # print "levels",StatisticTracker.levels
+    # print "notmerged_per_level",StatisticTracker.notmerged_per_level
+    # print "nr_genes",StatisticTracker.nr_genes
+    # print "nr_genes_per_genome",StatisticTracker.nr_genes_per_genome
+    # print "merged_per_level",StatisticTracker.merged_per_level
+    # print "time_per_level",StatisticTracker.time_per_level
 
     ############################
     end_time = time.time()
-    print("--- %s seconds" % (end_time - start_time))
+    print("--- %s seconds (total Time)" % (end_time - start_time))
     print("\n Done \\0/ \n")
     ############################
 
@@ -110,6 +105,3 @@ if __name__ == "__main__":
     Settings = Settings()
     StatisticTracker = StatisticTracker()
     main(sys.argv[1:])
-
-
-

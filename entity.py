@@ -23,9 +23,9 @@ class Genome(object):
     @classmethod
     def get_extent_genomes(cls):
         if Settings.genome_info is not None:
-            it = Settings.genome_info.iterkeys()
+            it = Settings.genome_info.keys()
         else:
-            it = cls.zoo.iterkeys()
+            it = cls.zoo.keys()
         return [cls.zoo[species_name] for species_name in it
                 if species_name in cls.zoo and cls.zoo[species_name].type == "extent"]
 
@@ -41,7 +41,7 @@ class Genome(object):
         self.children = [self] # att:children only composed of the obj:Genome (trick to handle ancestral and extent genomes together)
         self.type = "extent"
         nr_genes = Settings.inputfile_handler.get_number_of_proteins(node.name)
-        gene_range = xrange(1, nr_genes+1)
+        gene_range = range(1, nr_genes+1)
         self.create_genes_hogs_extent_genomes(gene_range)
         Genome.zoo[node.name] = self
         print('-> Genome of {} (composed of {:d} genes) created'.format(self.species[0], len(self.genes.keys())))
@@ -84,7 +84,9 @@ class Genome(object):
 
     def set_taxon_name(self,node):
         if node.name:
-            self.taxon = node.name.replace('__$__',',').replace('__po__', '(').replace('__pc__', ')').replace('_', ' ')
+            self.taxon = node.name.replace('__dc__',':').replace('__sc__',',')\
+                         .replace('__po__', '(').replace('__pc__', ')')\
+                         .replace('_', ' ')
         else:
             species_list = lib.get_list_species_name_genomes(self.children)
             taxon_name = ''
