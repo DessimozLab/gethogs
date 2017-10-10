@@ -122,10 +122,10 @@ class Settings(object):
         with open(fname) as fh:
             class_, nr_genomes, tot_nr_genes = fh.readline().split('\t')
             nr_genomes, tot_nr_genes = int(nr_genomes), int(tot_nr_genes)
-            g1, off1 = fh.readline().split('\t')
+            g1, off1, cls_ = fh.readline().split('\t')
             off1 = int(off1)
             for line in fh:
-                g, off = line.split('\t')
+                g, off, cls_ = line.split('\t')
                 off = int(off)
                 info[g1] = GenomeInfo(g1, off1, off - off1)
                 g1, off1 = g, off
