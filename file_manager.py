@@ -1,3 +1,4 @@
+import csv
 import datetime
 import os
 from os.path import join
@@ -36,15 +37,21 @@ class DataFileHandler(object):
 class OmaStandaloneFiles(DataFileHandler):
     def __init__(self, output):
         mapping = collections.defaultdict(dict)
-        data = np.genfromtxt(join(output, 'Map-SeqNum-ID.txt'), delimiter='\t', dtype=None, comments='#')
-        genome_info, cur_species, cur_off = {}, data[0][0].decode(), 0
-        for cnt, row in enumerate(data):
-            species = row[0].decode()
-            mapping[species][row[1]] = row[2].decode()
-            if species != cur_species and cur_species != '':
-                genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt - cur_off)
-                cur_off, cur_species = cnt, species
-        genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, len(data)-cur_off)
+        with open(join(output, 'Map-SeqNum-ID.txt')) as fh:
+            genome_info, cur_species = {}, None
+            cnt = cur_off = 0
+            csv_reader = csv.reader((line for line in fh if not line.startswith('#')),
+                                    delimiter='\t')
+            for row in csv_reader:
+                species = row[0]
+                mapping[species][int(row[1])] = row[2]
+                if species != cur_species:
+                    if cur_species is not None:
+                        genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt-cur_off)
+                    cur_species = species
+                    cur_off = cnt
+                cnt += 1
+            genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt-cur_off)
         settings.Settings.genome_info = genome_info
         self.mapping = mapping
 
