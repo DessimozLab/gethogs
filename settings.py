@@ -3,7 +3,7 @@ import sys
 import collections
 import file_manager
 
-GenomeInfo = collections.namedtuple('GenomeInfo', ['name', 'offset', 'nr_genes'])
+GenomeInfo = collections.namedtuple('GenomeInfo', ['name', 'offset', 'nr_genes', 'taxid', 'sciname', 'dbname', 'release', 'date'])
 
 
 class Settings(object):
@@ -31,6 +31,7 @@ class Settings(object):
         if cls.pairwise_folder == None or cls.input_type == None or cls.method_merge == None or cls.input_tree == None or cls.parameter_1 == None or cls.output_file == None:
             print(
             'There is a missing parameter, please check that you use all of the following arguments: -i -t -m -p -o -s')
+            print('found: {0.pairwise_folder}, {0.input_type}, {0.method_merge}, {0.input_tree}, {0.parameter_1}, {0.output_file}'.format(cls))
             sys.exit(1)
 
     @classmethod
@@ -122,13 +123,16 @@ class Settings(object):
         with open(fname) as fh:
             class_, nr_genomes, tot_nr_genes = fh.readline().split('\t')
             nr_genomes, tot_nr_genes = int(nr_genomes), int(tot_nr_genes)
-            g1, off1, cls_ = fh.readline().split('\t')
+            g1, off1, cls_nr, taxid1, sciname1, dbname1, release1, date1 = fh.readline().strip('\n').split('\t')
             off1 = int(off1)
             for line in fh:
-                g, off, cls_ = line.split('\t')
+                try:
+                    g, off, cls_nr, taxid, sciname, dbname, release, date = line.strip('\n').split('\t')
+                except ValueError:
+                    raise ValueError('Cannot split "{}" into 7 parts'.format(line))
                 off = int(off)
-                info[g1] = GenomeInfo(g1, off1, off - off1)
-                g1, off1 = g, off
-            info[g1] = GenomeInfo(g1, off1, tot_nr_genes - off1)
+                info[g1] = GenomeInfo(g1, off1, off - off1, int(taxid1), sciname1, dbname1, release1, date)
+                g1, off1, taxid1, sciname1, dbname1, release1, date1 = g, off, taxid, sciname, dbname, release, date
+            info[g1] = GenomeInfo(g1, off1, tot_nr_genes - off1, int(taxid1), sciname1, dbname1, release1, date1)
         cls.genome_info = info
         cls.oma_id_format = True

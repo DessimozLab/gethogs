@@ -48,7 +48,10 @@ class Genome(object):
         StatisticTracker.add_extent_genome_stat(self.species[0], len(self.genes.keys()))
 
     def get_gene_by_ext_id(self, ext_id):
-        return self.genes[ext_id]
+        try:
+            return self.genes[ext_id]
+        except KeyError as e:
+            raise
 
     def create_genes_hogs_extent_genomes(self, gene_range):
         """

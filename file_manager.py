@@ -129,7 +129,7 @@ def load_relations(file, inv):
         return data
 
     elif data.shape == (2,):
-        data = data.reshap(1, 2)
+        data = data.reshape(1, 2)
         return data
     else:
         try:
@@ -194,15 +194,19 @@ class XML_manager(object):
 
         prot_id_formatter = settings.Settings.inputfile_handler.prot_id_formatter
         for species in list_extent_genomes[::-1]:
+            try:
+                genome_info = settings.Settings.genome_info[species.species[0]]
+            except (AttributeError, KeyError):
+                genome_info = settings.GenomeInfo('',0,0,species.species[0],'unknown','unknown')
             species_xml = etree.Element("species")
-            species_xml.set("name", species.species[0])
-            species_xml.set("NCBITaxId", '0')
+            species_xml.set("name", genome_info.sciname)
+            species_xml.set("NCBITaxId", str(genome_info.taxid))
             self.xml.insert(0, species_xml)
 
             # Add <database> into <species>
             database_xml = etree.SubElement(species_xml, "database")
-            database_xml.set("name", 'unknown')
-            database_xml.set("version", 'unknown')
+            database_xml.set("name", genome_info.dbname)
+            database_xml.set("version", genome_info.release)
 
             # Add <genes> TAG into <database>
             genes_xml = etree.SubElement(database_xml, "genes")
