@@ -4,6 +4,7 @@ import collections
 import file_manager
 
 GenomeInfo = collections.namedtuple('GenomeInfo', ['name', 'offset', 'nr_genes', 'taxid', 'sciname', 'dbname', 'release', 'date'])
+GenomeInfo.__new__.__defaults__ = (0,) + (None, ) * (len(GenomeInfo._fields)-4)
 
 
 class Settings(object):
