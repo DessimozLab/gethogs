@@ -79,7 +79,10 @@ def get_percentage_orthologous_relations(hog_1, hog_2, extent_relations):
     :param extent_relations:
     :return:
     """
-    maximum_relations = len(hog_1.genes) * len(hog_2.genes)
+    n1 = sum(map(len, hog_1.genes.values()))
+    n2 = sum(map(len, hog_2.genes.values()))
+    #maximum_relations = len(hog_1.genes) * len(hog_2.genes)
+    maximum_relations = n1 * n2
     score = float(extent_relations) / float(maximum_relations)
     return score * 100
 
