@@ -47,11 +47,11 @@ class OmaStandaloneFiles(DataFileHandler):
                 mapping[species][int(row[1])] = row[2]
                 if species != cur_species:
                     if cur_species is not None:
-                        genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt-cur_off)
+                        genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt-cur_off, 0, cur_species)
                     cur_species = species
                     cur_off = cnt
                 cnt += 1
-            genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt-cur_off)
+            genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt-cur_off, 0, cur_species)
         settings.Settings.genome_info = genome_info
         self.mapping = mapping
 
@@ -197,7 +197,7 @@ class XML_manager(object):
             try:
                 genome_info = settings.Settings.genome_info[species.species[0]]
             except (AttributeError, KeyError):
-                genome_info = settings.GenomeInfo('',0,0,species.species[0],'unknown','unknown')
+                genome_info = settings.GenomeInfo('', 0, 0, species.species[0], 'unknown', 'unknown')
             species_xml = etree.Element("species")
             species_xml.set("name", genome_info.sciname)
             species_xml.set("NCBITaxId", str(genome_info.taxid))
