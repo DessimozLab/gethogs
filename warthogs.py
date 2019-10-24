@@ -1,8 +1,17 @@
 import sys
+try:
+    from Bio import Phylo
+    import numpy
+    import lxml
+except ImportError:
+    sys.stderr.write("Bottom-up HOGs require lxml, numpy and Biopython to be installed.\n")
+    sys.stderr.write("Use e.g. \"pip install biopython numpy lxml\" or activate an appropriate\n")
+    sys.stderr.write("virtualenv before starting warthog.\n")
+    sys.exit(1)
+
 import getopt
 import lib
 import file_manager
-from Bio import Phylo
 import time as time
 from settings import Settings
 from statistic_tracker import StatisticTracker
