@@ -2,12 +2,7 @@ __author__ = 'admin'
 
 from itertools import combinations
 import time
-import entity
-import file_manager
-import settings
-import statistic_tracker
-import lib
-import unionfind
+from . import entity, settings, unionfind, lib, statistic_tracker
 import lxml.etree as etree
 
 

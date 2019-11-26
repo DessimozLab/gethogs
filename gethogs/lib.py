@@ -1,8 +1,7 @@
 import time
-import entity
-import statistic_tracker
+from . import entity, statistic_tracker
 from Bio import Phylo
-from settings import Settings
+from .settings import Settings
 
 
 def propagate_dynamic_threshold(node, depth):

@@ -1,8 +1,6 @@
-import file_manager
-from settings import Settings
-from statistic_tracker import StatisticTracker
-import genome_merger
-import lib
+from .settings import Settings
+from .statistic_tracker import StatisticTracker
+from . import genome_merger, lib
 
 
 class Genome(object):

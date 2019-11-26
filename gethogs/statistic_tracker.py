@@ -37,7 +37,6 @@ class StatisticTracker(object):
     def set_time_per_level(cls, level_name, time):
         cls.time_per_level[level_name] = time
 
-
     @classmethod
     def add_level_stat(cls, level_name, cc_per_level, merged_per_level, notmerged_per_level, hog_per_level):
         cls.levels.append(level_name)
