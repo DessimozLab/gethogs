@@ -42,7 +42,7 @@ setup(
          'Programming Language :: Python :: 3.6',
          'Programming Language :: Python :: 3.7',
          ],
-
-    packages=find_packages(exclude=[]),
+    scripts=['bin/warthogs.py'],
+    packages=find_packages(),
     install_requires=requirements,
 )
