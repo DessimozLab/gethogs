@@ -50,7 +50,9 @@ IMPORTANT:
     parser.add_argument('-d', '--dynamic',
                         help="merge threshold of the root used by the dynamic propagation")
     conf = parser.parse_args()
-    for opt, value in conf.vars():
+    for opt, value in vars(conf).items():
+        if value is None:
+            continue
         if opt == 'input':
             Settings.set_pairwise_folder(str(value))
         elif opt == "paralogs":
