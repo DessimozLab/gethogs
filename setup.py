@@ -4,7 +4,7 @@ from io import open
 
 
 name = 'gethogs'
-requirements = ['lxml', 'numpy', 'Biopython']
+requirements = ['lxml', 'numpy', 'biopython']
 
 
 __version__ = "Undefined"

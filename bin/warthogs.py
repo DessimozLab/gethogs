@@ -1,8 +1,9 @@
+#!/usr/bin/env python
 import sys
 import argparse
 import time as time
 from Bio import Phylo
-from gethogs import file_manager, lib
+from gethogs import file_manager, lib, version
 from gethogs.settings import Settings
 from gethogs.statistic_tracker import StatisticTracker
 
@@ -31,10 +32,10 @@ IMPORTANT:
                         help="The method used to clean the orthology graph during the "
                              "reconstruction of the ancestral HOGs. You can select *pair* "
                              "for cleaning the edges pairs of HOGs by pairs (-p required to "
-                             "specify the minimal % of relations mandatory of be kept) or "
+                             "specify the minimal percent of relations mandatory of be kept) or "
                              "*update* if you want to update the orthology graph each time "
                              "you modify a pair of hogs (-p required to specify the minimal "
-                             "% of relations mandatory of be kept)")
+                             "percent of relations mandatory of be kept)")
     parser.add_argument('-p', '--parameter', type=int, required=True,
                         help="Parameter used by the merge_method")
     parser.add_argument('-o', '--output', required=True, type=str,
@@ -49,6 +50,7 @@ IMPORTANT:
                         help="maximum number of unmerged before freezing an HOGs")
     parser.add_argument('-d', '--dynamic',
                         help="merge threshold of the root used by the dynamic propagation")
+    parser.add_argument('--version', action="version", version=version())
     conf = parser.parse_args()
     for opt, value in vars(conf).items():
         if value is None:
