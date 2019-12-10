@@ -1,7 +1,7 @@
 from Bio import Phylo
 import sys
 import collections
-import file_manager
+from gethogs import file_manager
 
 GenomeInfo = collections.namedtuple('GenomeInfo', ['name', 'offset', 'nr_genes', 'taxid', 'sciname', 'dbname', 'release', 'date'])
 GenomeInfo.__new__.__defaults__ = (0,) + ('', ) * (len(GenomeInfo._fields)-4)

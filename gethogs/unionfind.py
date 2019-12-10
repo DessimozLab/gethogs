@@ -8,6 +8,7 @@ with significant additional changes by D. Eppstein and
 Adrian Altenhoff.
 """
 
+
 class UnionFind(object):
     """Union-find data structure.
 

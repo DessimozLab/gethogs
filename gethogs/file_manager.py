@@ -4,8 +4,7 @@ import os
 from os.path import join
 import numpy as np
 import lxml.etree as etree
-import entity
-import settings
+from . import entity, settings
 import collections
 
 
@@ -47,11 +46,11 @@ class OmaStandaloneFiles(DataFileHandler):
                 mapping[species][int(row[1])] = row[2]
                 if species != cur_species:
                     if cur_species is not None:
-                        genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt-cur_off, 0, cur_species)
+                        genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt - cur_off, 0, cur_species)
                     cur_species = species
                     cur_off = cnt
                 cnt += 1
-            genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt-cur_off, 0, cur_species)
+            genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt - cur_off, 0, cur_species)
         settings.Settings.genome_info = genome_info
         self.mapping = mapping
 
@@ -62,7 +61,7 @@ class OmaStandaloneFiles(DataFileHandler):
         return max(self.mapping[genome].keys())
 
     def get_relations_filename(self, genome1, genome2, typ='ortholog'):
-        root = settings.Settings.pairwise_folder if typ[0].lower()=='o' else settings.Settings.paralogs_folder
+        root = settings.Settings.pairwise_folder if typ[0].lower() == 'o' else settings.Settings.paralogs_folder
         g1, g2 = sorted([genome1, genome2], key=lambda x: settings.Settings.genome_info[x].nr_genes)
         path = join(root, "{}-{}.txt".format(g1, g2))
         if not os.path.exists(path):
@@ -95,7 +94,7 @@ class OmaProductionFiles(DataFileHandler):
 def inputfile_handler_factory():
     input_type = settings.Settings.input_type.lower()
     if input_type == 'standalone':
-        return OmaStandaloneFiles(os.path.normpath(join(settings.Settings.pairwise_folder,'..')))
+        return OmaStandaloneFiles(os.path.normpath(join(settings.Settings.pairwise_folder, '..')))
     elif input_type == 'oma':
         return OmaProductionFiles()
 
