@@ -6,6 +6,8 @@ import numpy as np
 import lxml.etree as etree
 from . import entity, settings
 import collections
+# default limit can be too small for proteins with large crossreference headers
+csv.field_size_limit(1<<20)
 
 
 # Function to handle folders/files #
