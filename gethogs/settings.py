@@ -26,6 +26,7 @@ class Settings(object):
     unmerged_treshold = False
     genome_info = None
     oma_id_format = False
+    all_loft_ids = False
 
     @classmethod
     def check_required_argument(cls):
@@ -108,6 +109,10 @@ class Settings(object):
     @classmethod
     def set_xml_manager(cls, parameter):
         cls.xml_manager = parameter
+
+    @classmethod
+    def set_all_loft_ids(cls, paramter):
+        cls.all_loft_ids = bool(paramter)
 
     @classmethod
     def set_genome_info(cls, fname):

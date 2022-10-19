@@ -4,7 +4,7 @@ from . import genome_merger, lib
 
 
 class Genome(object):
-    IdCount = 0
+    IdCount = 1
     zoo = {}  # key: species_name & value: extent genomes
     retirement_house = {}  # key: taxon & value: ancestral genomes
 
@@ -97,7 +97,7 @@ class Genome(object):
 
 
 class HOG(object):
-    IdCount = 0
+    IdCount = 1
 
     def __init__(self):
         self.genes = {} # key: obj:Genome and value: list obj:Gene
