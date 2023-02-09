@@ -160,6 +160,7 @@ class XML_manager(object):
             vers = "[VERSIONNR]"
 
         self.xml = self.create_xml(origin, vers)
+        self.tax = etree.SubElement(self.xml, "taxonomy")
         self.groupsxml = etree.SubElement(self.xml, "groups")
 
     def create_xml(self, origin, originVersion):
@@ -175,7 +176,7 @@ class XML_manager(object):
         xml_core = etree.Element("orthoXML")
         xml_core.set("origin", origin)
         xml_core.set("originVersion", originVersion)
-        xml_core.set("version", "0.3")
+        xml_core.set("version", "0.5")
         xml_core.set("xmlns", "http://orthoXML.org/2011/")
         return xml_core
 
@@ -186,7 +187,10 @@ class XML_manager(object):
         '''
         self.add_species_data(entity.Genome.get_extent_genomes())
         self.delete_solohog()
-        self.add_toplevel_OG_Id()
+        if settings.Settings.all_loft_ids:
+            self.add_loft_ids()
+        else:
+            self.add_toplevel_OG_Id()
         tree = etree.ElementTree(self.xml)
         tree.write(settings.Settings.output_file, pretty_print=True, xml_declaration=True, encoding='utf-8',
                    method="xml")
@@ -207,6 +211,7 @@ class XML_manager(object):
             species_xml = etree.Element("species")
             species_xml.set("name", genome_info.sciname)
             species_xml.set("NCBITaxId", str(genome_info.taxid))
+            species_xml.set("taxonId", str(species.UniqueId))
             self.xml.insert(0, species_xml)
 
             # Add <database> into <species>
@@ -227,6 +232,21 @@ class XML_manager(object):
                 gene_xml = etree.SubElement(genes_xml, "gene")
                 gene_xml.set("id", str(gene_obj.int_id))
                 gene_xml.set("protId", prot_id)
+
+    def add_taxonomy(self, tree_node):
+
+        def trav(parent, node):
+            n = etree.SubElement(parent, "taxon")
+            n.set("id", str(node.genome.UniqueId))
+            if node.is_terminal():
+                n.set("name", str(node.name))
+            else:
+                if node.genome.taxon is not None:
+                    n.set("name", str(node.genome.taxon))
+                for child in node:
+                    trav(n, child)
+
+        trav(self.tax, tree_node)
 
     def create_xml_solohog(self, hog):
         '''
@@ -252,3 +272,34 @@ class XML_manager(object):
         for i, e in enumerate(self.xml.findall('.//groups/orthologGroup')):
             e.set('id', str(id_count))
             id_count += 1
+
+    def add_loft_ids(self, id_formatter="HOG:{:08d}"):
+
+        def encodeParalogClusterId(prefix, nr):
+            letters = []
+            while nr // 26 > 0:
+                letters.append(chr(97 + (nr % 26)))
+                nr = nr // 26 - 1
+            letters.append(chr(97 + (nr % 26)))
+            return prefix + ''.join(letters[::-1])
+
+        def nextSubHogId(idx):
+            dups[idx] += 1
+            return dups[idx]
+
+        def rec_annotate(node, og, idx=0):
+            if node.tag == "orthologGroup":
+                taxon_id = node.get('taxonId')
+                node.set('id', og + "_" + taxon_id)
+                for child in list(node):
+                    rec_annotate(child, og, idx)
+            elif node.tag == "paralogGroup":
+                idx += 1
+                next_og = "{}.{}".format(og, nextSubHogId(idx))
+                for i, child in enumerate(list(node)):
+                    rec_annotate(child, encodeParalogClusterId(next_og, i), idx)
+
+        for i, el in enumerate(self.xml.findall(".//groups/orthologGroup")):
+            og = id_formatter.format(i)
+            dups = collections.defaultdict(int)
+            rec_annotate(el, og)

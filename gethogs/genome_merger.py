@@ -209,6 +209,7 @@ class Merge_ancestral():
             # init the hog and its xml element
             new_hog = entity.HOG()
             new_hog.xml = etree.SubElement(settings.Settings.xml_manager.groupsxml, "orthologGroup")
+            new_hog.xml.set("taxonId", str(self.newgenome.UniqueId))
             taxon = etree.SubElement(new_hog.xml, "property")
             taxon.set("name", 'TaxRange')
             taxon.set("value", self.newgenome.taxon)

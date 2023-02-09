@@ -50,6 +50,7 @@ IMPORTANT:
                         help="maximum number of unmerged before freezing an HOGs")
     parser.add_argument('-d', '--dynamic',
                         help="merge threshold of the root used by the dynamic propagation")
+    parser.add_argument('--loft', action="store_true", help="annotate all orthologGroup elements with their LOFT id")
     parser.add_argument('--version', action="version", version=version())
     conf = parser.parse_args()
     for opt, value in vars(conf).items():
@@ -75,6 +76,8 @@ IMPORTANT:
             Settings.set_unmerged_threshold(str(value))
         elif opt == "genome_info":
             Settings.set_genome_info(str(value))
+        elif opt == "loft":
+            Settings.set_all_loft_ids(value)
         else:
             raise KeyError("Unknown argument '{}'. Please check manual or report".format(opt))
 
@@ -101,6 +104,7 @@ def run_gethogs():
         lib.propagate_dynamic_threshold(backbone_tree.root, 0)
     lib.draw_tree(backbone_tree)
     lib.recursive_traversal(backbone_tree.root)
+    Settings.xml_manager.add_taxonomy(backbone_tree.root)
 
     Settings.xml_manager.finish_xml()
 
