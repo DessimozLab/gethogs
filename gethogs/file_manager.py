@@ -45,7 +45,12 @@ class OmaStandaloneFiles(DataFileHandler):
                                     delimiter='\t')
             for row in csv_reader:
                 species = row[0]
-                mapping[species][int(row[1])] = row[2]
+                try:
+                    is_main_isoform = row[3].lower() in ('true', '1', 't', 'y', 'yes')
+                except IndexError:
+                    is_main_isoform = True
+                if is_main_isoform:
+                    mapping[species][int(row[1])] = row[2]
                 if species != cur_species:
                     if cur_species is not None:
                         genome_info[cur_species] = settings.GenomeInfo(cur_species, cur_off, cnt - cur_off, 0, cur_species)
@@ -214,9 +219,14 @@ class XML_manager(object):
 
             # Fill <genes> with <gene>
             for ext_id, gene_obj in species.genes.items():
+                try:
+                    prot_id = prot_id_formatter(species, gene_obj)
+                except KeyError:
+                    # minor splice variant, continue with next gene
+                    continue
                 gene_xml = etree.SubElement(genes_xml, "gene")
                 gene_xml.set("id", str(gene_obj.int_id))
-                gene_xml.set("protId", prot_id_formatter(species, gene_obj))
+                gene_xml.set("protId", prot_id)
 
     def create_xml_solohog(self, hog):
         '''
