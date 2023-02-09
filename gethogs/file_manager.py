@@ -300,6 +300,6 @@ class XML_manager(object):
                     rec_annotate(child, encodeParalogClusterId(next_og, i), idx)
 
         for i, el in enumerate(self.xml.findall(".//groups/orthologGroup")):
-            og = id_formatter.format(i)
+            og = id_formatter.format(i+1)
             dups = collections.defaultdict(int)
             rec_annotate(el, og)
