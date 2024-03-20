@@ -291,6 +291,7 @@ class XML_manager(object):
             if node.tag == "orthologGroup":
                 taxon_id = node.get('taxonId')
                 node.set('id', og + "_" + taxon_id)
+                node.set('og', og)
                 for child in list(node):
                     rec_annotate(child, og, idx)
             elif node.tag == "paralogGroup":
@@ -298,6 +299,8 @@ class XML_manager(object):
                 next_og = "{}.{}".format(og, nextSubHogId(idx))
                 for i, child in enumerate(list(node)):
                     rec_annotate(child, encodeParalogClusterId(next_og, i), idx)
+            elif node.tag == "geneRef":
+                node.set('LOFT', og)
 
         for i, el in enumerate(self.xml.findall(".//groups/orthologGroup")):
             og = id_formatter.format(i+1)
